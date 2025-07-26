@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% set active = 'login' %}
+
+{% block navbar_items %}
+<li class="nav-item mx-1">
+  <a class="nav-link {{ 'active' if active == 'home' }}" href="{{ url_for('main.home') }}"><i
+      class="fas fa-home me-1"></i>Home</a>
+</li>
+<li class="nav-item mx-1">
+  <a class="nav-link {{ 'active' if active == 'login' }}" href="{{ url_for('auth.login') }}"><i
+      class="fas fa-sign-in-alt me-1"></i>Login</a>
+</li>
+<li class="nav-item mx-1">
+  <a class="nav-link {{ 'active' if active == 'register' }}" href="{{ url_for('auth.register') }}"><i
+      class="fas fa-user-plus me-1"></i>Register</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<section class="login-section"
+  style="background: linear-gradient(45deg, var(--hospital-dark), var(--hospital-color)); min-height: 100vh;">
+  <div class="container-fluid h-100 py-5">
+    <div class="row h-100 align-items-center justify-content-center">
+
+      <!-- Carousel Visual (Left Complement) -->
+      <div
+        class="col-lg-7 d-none d-lg-flex justify-content-center align-items-center pe-5 animate__animated animate__fadeInLeft">
+        <div class="w-100 rounded-4 overflow-hidden shadow-lg"
+          style="backdrop-filter: blur(6px); background: rgba(255,255,255,0.05); padding: 1rem;">
+          <div id="loginCarousel" class="carousel slide carousel-fade h-100" data-bs-ride="carousel">
+            <div class="carousel-inner h-100 rounded-4">
+              <!-- Slide 1 -->
+              <div class="carousel-item active h-100">
+                <img src="{{ url_for('static', filename='images/orange-capsules.jpg') }}"
+                  class="d-block w-100 h-100 object-fit-cover" alt="Smart Inventory" loading="lazy">
+                <div class="carousel-caption text-start p-4 d-none d-md-block" style="bottom: 20%; left: 5%;">
+                  <h3 class="display-5 mb-3">Smart Inventory Control</h3>
+                  <p class="lead opacity-85">Real-time tracking for your pharmacy stock</p>
+                </div>
+              </div>
+              <!-- Slide 2 -->
+              <div class="carousel-item h-100">
+                <img src="{{ url_for('static', filename='images/stickman-capsules.jpg') }}"
+                  class="d-block w-100 h-100 object-fit-cover" alt="Analytics" loading="lazy">
+                <div class="carousel-caption text-start p-4 d-none d-md-block" style="bottom: 20%; left: 5%;">
+                  <h3 class="display-5 mb-3">Advanced Analytics</h3>
+                  <p class="lead opacity-85">Track sales trends and inventory health</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>
+        /* Faded placeholder for all input & textarea elements */
+        ::placeholder {
+          color: rgba(0, 0, 0, 0.1);
+          /* Light grey/black for light themes */
+          font-style: italic;
+          transition: color 0.3s ease;
+          font-size: 1.1rem;
+        }
+      </style>
+
+      <!-- Login Form (Right Complement) -->
+      <div
+        class="col-lg-5 d-flex justify-content-center align-items-center ps-lg-5 animate__animated animate__fadeInRight animate__delay-1s">
+        <div class="card shadow-lg w-100" style="max-width: 480px; border-radius: 20px;">
+          <div class="card-body p-4 p-xl-5">
+
+            <!-- Greeting -->
+            <div class="text-center mb-5">
+              <div
+                class="d-inline-block p-3 rounded-circle bg-hospital mb-3 animate__animated animate__zoomIn animate__delay-2s">
+                <i class="fas fa-clinic-medical fa-2x text-white"></i>
+              </div>
+              <h2 class="h3 text-hospital mb-2">Welcome Back</h2>
+              <p class="text-muted">Manage your duka la dawa with confidence.</p>
+            </div>
+
+            <!-- Login Form -->
+            <form method="POST" action="{{ url_for('auth.login') }}"
+              class="animate__animated animate__fadeIn animate__faster">
+              {{ form.hidden_tag() }}
+
+              <!-- Username -->
+              <div class="mb-4">
+                <div class="input-group input-group-lg">
+                  <span class="input-group-text bg-hospital text-white border-0">
+                    <i class="fas fa-user"></i>
+                  </span>
+                  {{ form.username(class="form-control", placeholder="Username") }}
+                </div>
+                {% for error in form.username.errors %}
+                <div class="text-danger small mt-2">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <!-- Password -->
+              <div class="mb-4">
+                <div class="input-group input-group-lg">
+                  <span class="input-group-text bg-hospital text-white border-0">
+                    <i class="fas fa-lock"></i>
+                  </span>
+                  {{ form.password(class="form-control", placeholder="Password") }}
+                  <button type="button" class="btn btn-outline-secondary" id="togglePassword">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                </div>
+                {% for error in form.password.errors %}
+                <div class="invalid-feedback small mt-2">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <!-- Remember Me + Forgot Password -->
+              <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <div class="form-check">
+                  {{ form.remember(class="form-check-input", id="remember") }}
+                  <label class="form-check-label text-muted small" for="remember">
+                    Remember this device
+                  </label>
+                </div>
+                <a href="{{ url_for('auth.forgot_password') }}" class="small text-hospital">
+                  Recover Access <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="d-grid mb-4">
+                <button type="submit" class="btn btn-hospital btn-lg py-3 shadow-sm">
+                  <i class="fas fa-sign-in-alt me-2"></i>Access Dashboard
+                </button>
+              </div>
+
+              <div class="text-center mt-5">
+                <div class="soft-pulse mx-auto mb-3">
+                  <img src="{{ url_for('static', filename='images/kenya-flag-badge.jpg') }}" alt="Kenya Flag Badge"
+                    loading="lazy" />
+                </div>
+                <p class="small text-muted fst-italic">
+                  Echoing the heartbeat of our nation,<br />
+                  <strong>Proudly Kenyan.</strong>
+                </p>
+              </div>
+
+              <!-- Register -->
+              <div class="text-center border-top pt-4 mt-4">
+                <p class="text-muted small mb-0">
+                  New to PharmaDesk?
+                  <a href="{{ url_for('auth.register') }}" class="text-hospital fw-bold">Create Account</a>
+                </p>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<script>
+  document.getElementById('togglePassword').addEventListener('click', function () {
+    let passwordField = document.getElementById('password');
+    if (passwordField.type === 'password') {
+      passwordField.type = 'text';
+      this.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+    } else {
+      passwordField.type = 'password';
+      this.innerHTML = '<i class="fa-solid fa-eye"></i>';
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('main.home') }}"><i class="fas fa-home me-1"></i>Home</a>
+</li>
+
+{% if current_user.is_authenticated %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}"><i
+            class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
+</li>
+{% else %}
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('auth.register') }}"><i class="fas fa-user-plus me-1"></i>Register</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt me-1"></i>Login</a>
+</li>
+{% endif %}
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('main.features') }}"><i class="fas fa-star me-1"></i>Features</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link active" href="{{ url_for('main.privacy_policy') }}"><i
+            class="fas fa-shield-alt me-1"></i>Privacy</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Privacy Policy Header -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-hospital text-white border-0 shadow-lg">
+                <div class="card-body p-4 p-md-5">
+                    <h1 class="display-5 fw-bold mb-3"><i class="fas fa-shield-alt me-3"></i>Privacy Policy</h1>
+                    <p class="lead mb-0 opacity-75">Last updated: June 12, 2025 | Compliant with Kenya's Data Protection
+                        Act, 2019</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Policy Sections -->
+    <div class="row g-4">
+        <!-- Introduction -->
+        <div class="col-12">
+            <div class="card feature-card">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-info-circle me-2"></i> Introduction
+                </div>
+                <div class="card-body">
+                    <p>At PharmaDesk, we take your privacy seriously. This Privacy Policy explains how we collect, use,
+                        store, and protect your personal information in compliance with Kenya's Data Protection Act,
+                        2019.</p>
+                    <div class="alert alert-hospital-light">
+                        <i class="fas fa-lock me-2 text-hospital"></i> We are committed to maintaining the
+                        confidentiality and security of all data entrusted to us by Kenyan pharmacies.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Information We Collect -->
+        <div class="col-md-6">
+            <div class="card feature-card h-100">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-database me-2"></i> Information We Collect
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="infoAccordion">
+                        <!-- Account Info -->
+                        <div class="accordion-item border-0 mb-3">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed bg-hospital-light" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#accountInfo">
+                                    <i class="fas fa-user-circle me-2 text-hospital"></i> Account Information
+                                </button>
+                            </h3>
+                            <div id="accountInfo" class="accordion-collapse collapse" data-bs-parent="#infoAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="fas fa-store me-3 text-hospital"></i>
+                                            <span>Pharmacy name and physical address</span>
+                                        </li>
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="fas fa-user-tie me-3 text-hospital"></i>
+                                            <span>Primary contact person's details</span>
+                                        </li>
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="fas fa-envelope me-3 text-hospital"></i>
+                                            <span>Email address and phone number</span>
+                                        </li>
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="fas fa-id-card me-3 text-hospital"></i>
+                                            <span>Pharmacy and Poisons Board license</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Business Data -->
+                        <div class="accordion-item border-0 mb-3">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed bg-hospital-light" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#businessData">
+                                    <i class="fas fa-briefcase me-2 text-hospital"></i> Business Data
+                                </button>
+                            </h3>
+                            <div id="businessData" class="accordion-collapse collapse" data-bs-parent="#infoAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="fas fa-pills me-3 text-hospital"></i>
+                                            <span>Inventory information</span>
+                                        </li>
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="fas fa-receipt me-3 text-hospital"></i>
+                                            <span>Sales transaction records</span>
+                                        </li>
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="fas fa-history me-3 text-hospital"></i>
+                                            <span>Customer purchase history</span>
+                                        </li>
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="fas fa-truck me-3 text-hospital"></i>
+                                            <span>Supplier information</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Technical Info -->
+                        <div class="accordion-item border-0">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed bg-hospital-light" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#technicalInfo">
+                                    <i class="fas fa-server me-2 text-hospital"></i> Technical Information
+                                </button>
+                            </h3>
+                            <div id="technicalInfo" class="accordion-collapse collapse" data-bs-parent="#infoAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="fas fa-network-wired me-3 text-hospital"></i>
+                                            <span>IP addresses and device information</span>
+                                        </li>
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="fas fa-desktop me-3 text-hospital"></i>
+                                            <span>Browser and OS details</span>
+                                        </li>
+                                        <li class="list-group-item d-flex align-items-center">
+                                            <i class="fas fa-chart-line me-3 text-hospital"></i>
+                                            <span>Usage patterns and performance data</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Usage & Security -->
+        <div class="col-md-6">
+            <div class="card feature-card h-100">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-lock me-2"></i> Data Security & Usage
+                </div>
+                <div class="card-body">
+                    <h5 class="d-flex align-items-center">
+                        <i class="fas fa-check-circle me-2 text-hospital"></i> How We Use Your Information
+                    </h5>
+                    <ul class="list-group list-group-flush mb-4">
+                        <li class="list-group-item">Providing PharmaDesk services</li>
+                        <li class="list-group-item">Processing transactions</li>
+                        <li class="list-group-item">Sending system notifications</li>
+                        <li class="list-group-item">Improving our software</li>
+                    </ul>
+
+                    <h5 class="d-flex align-items-center mt-4">
+                        <i class="fas fa-shield-alt me-2 text-hospital"></i> Security Measures
+                    </h5>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="p-3 border rounded text-center">
+                                <i class="fas fa-key fa-2x mb-2 text-hospital"></i>
+                                <p class="mb-0 small">256-bit SSL encryption</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 border rounded text-center">
+                                <i class="fas fa-database fa-2x mb-2 text-hospital"></i>
+                                <p class="mb-0 small">AES-256 encryption</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 border rounded text-center">
+                                <i class="fas fa-user-shield fa-2x mb-2 text-hospital"></i>
+                                <p class="mb-0 small">MFA protection</p>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-3 border rounded text-center">
+                                <i class="fas fa-history fa-2x mb-2 text-hospital"></i>
+                                <p class="mb-0 small">Daily backups</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- M-Pesa & Data Rights -->
+        <div class="col-md-6">
+            <div class="card feature-card">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-money-bill-wave me-2"></i> M-Pesa Transactions
+                </div>
+                <div class="card-body">
+                    <div class="d-flex mb-3">
+                        <div class="me-3 text-hospital">
+                            <i class="fas fa-mobile-alt fa-2x"></i>
+                        </div>
+                        <div>
+                            <p>PharmaDesk integrates with M-Pesa for payment processing but does not store M-Pesa
+                                transaction details. All payments are processed directly through Safaricom's secure
+                                systems.</p>
+                        </div>
+                    </div>
+                    <div class="alert alert-hospital-light">
+                        <i class="fas fa-info-circle me-2 text-hospital"></i> We only retain transaction confirmation
+                        numbers for reconciliation purposes.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Your Rights -->
+        <div class="col-md-6">
+            <div class="card feature-card">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-gavel me-2"></i> Your Rights (Kenya DPA)
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded h-100">
+                                <i class="fas fa-eye me-2 text-hospital"></i> Access your data
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded h-100">
+                                <i class="fas fa-edit me-2 text-hospital"></i> Correct inaccuracies
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded h-100">
+                                <i class="fas fa-trash-alt me-2 text-hospital"></i> Request deletion
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded h-100">
+                                <i class="fas fa-ban me-2 text-hospital"></i> Object to processing
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded h-100">
+                                <i class="fas fa-pause-circle me-2 text-hospital"></i> Restrict processing
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 border rounded h-100">
+                                <i class="fas fa-file-export me-2 text-hospital"></i> Data portability
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact & Retention -->
+        <div class="col-12">
+            <div class="card feature-card">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-question-circle me-2"></i> Contact & Data Retention
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-address-card me-2 text-hospital"></i> Contact Information</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-user-shield me-2 text-hospital"></i> <strong>Data
+                                        Protection Officer:</strong> privacy@pharmadesk.co.ke</li>
+                                <li class="mb-2"><i class="fas fa-phone me-2 text-hospital"></i> +254 115 082 970</li>
+                                <li><i class="fas fa-map-marker-alt me-2 text-hospital"></i> PharmaDesk Kenya Ltd,
+                                    Nairobi</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-archive me-2 text-hospital"></i> Retention Periods</h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-user-times me-2 text-hospital"></i> Personal data
+                                    deleted within 90 days of account closure</li>
+                                <li class="mb-2"><i class="fas fa-file-invoice me-2 text-hospital"></i> Business records
+                                    retained for 7 years</li>
+                                <li><i class="fas fa-chart-bar me-2 text-hospital"></i> Anonymized data may be kept for
+                                    analytics</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i> You may lodge complaints with the Office of the
+                        Data Protection Commissioner if needed.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .accordion-button:not(.collapsed) {
+        background-color: var(--hospital-light);
+        color: var(--hospital-dark);
+    }
+
+    .accordion-button:focus {
+        box-shadow: 0 0 0 0.25rem rgba(26, 109, 140, 0.25);
+    }
+
+    .alert-hospital-light {
+        background-color: var(--hospital-light);
+        border-left: 4px solid var(--hospital-color);
+    }
+</style>
+{% endblock %}

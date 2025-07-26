@@ -1,0 +1,510 @@
+{% extends "base.html" %}
+{% set active = 'profile' %}
+
+
+{% block navbar_items %}
+<li class="nav-item mx-1">
+    <a class="nav-link" href="{{ url_for('main.home') }}">Home</a>
+</li>
+<li class="nav-item mx-1">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }} " href="{{ url_for('main.dashboard') }}">
+        Dashboard
+    </a>
+</li>
+<li class="nav-item mx-1">
+    <a class="nav-link {{ 'active' if active == 'profile' }} " href="{{ url_for('main.profile') }}">
+        Profile
+    </a>
+</li>
+{%endblock%}
+
+{% block content %}
+<!-- Profile Template -->
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-user-cog me-2"></i> Account Settings
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item active">
+                        <a href="{{ url_for('main.profile') }}" class="text-decoration-none text-dark">
+                            <i class="fas fa-user me-2"></i> Profile Information
+                        </a>
+                    </li>
+                    <li class="list-group-item">
+                        <a href="{{ url_for('main.settings') }}" class="text-decoration-none text-muted">
+                            <i class="fas fa-cog me-2"></i> System Preferences
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body text-center">
+                    <div class="position-relative d-inline-block">
+                        <img src="{{ url_for('static', filename='images/user-avatar.png') }}"
+                            class="rounded-circle border border-3 border-hospital" width="120" alt="User Avatar">
+                        <button class="btn btn-sm btn-hospital rounded-circle position-absolute bottom-0 end-0">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                    <h5 class="mt-3 mb-0">{{ current_user.full_name }}</h5>
+                    <p class="text-muted mb-1">@{{ current_user.username }}</p>
+                    <span class="badge bg-hospital-light text-hospital">
+                        <i class="fas fa-store me-1"></i> {{ current_user.pharmacy.name }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ===== USER PROFILE CARD ===== -->
+        <div class="col-lg-9">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-hospital text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>My Profile</h5>
+                    <button type="button" class="btn btn-sm btn-primary" id="editProfileBtn" aria-label="Edit profile">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="profileNotification" class="alert d-none" role="alert"></div>
+                    <form id="profileForm" method="POST" action="{{ url_for('main.update_profile') }}" novalidate>
+                        <input type="hidden" name="user_id" value="{{ current_user.id }}">
+                        <div class="row g-3">
+                            <!-- Editable Fields -->
+                            <div class="col-md-6">
+                                <label for="pf_full_name" class="form-label text-muted">Full Name</label>
+                                <input id="pf_full_name" type="text" class="form-control" name="full_name"
+                                    value="{{ current_user.full_name }}" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="pf_phone" class="form-label text-muted">Phone Number</label>
+                                <input id="pf_phone" type="tel" class="form-control" name="phone"
+                                    value="{{ current_user.phone }}" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="pf_email" class="form-label text-muted">Email Address</label>
+                                <input id="pf_email" type="email" class="form-control" name="email"
+                                    value="{{ current_user.email or '' }}" placeholder="you@example.com" disabled>
+                            </div>
+
+                            <!-- Read-only Fields -->
+                            <div class="col-md-6">
+                                <div class="form-label text-muted">Username</div>
+                                <div>{{ current_user.username }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-label text-muted">User Code</div>
+                                <div>{{ current_user.user_code }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-label text-muted">Pharmacy</div>
+                                <div>{{ current_user.pharmacy.name }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-label text-muted">Last Login</div>
+                                <div>{{ current_user.last_login | utc_to_eat | format_date('%Y-%m-%d %H:%M') if
+                                    current_user.last_login else 'Never' }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-label text-muted">Account Created</div>
+                                <div>{{ current_user.created_at | utc_to_eat | format_date('%Y-%m-%d') }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-none mt-3" id="profileFormActions">
+                            <button type="button" class="btn btn-hospital" id="saveProfileBtn">
+                                <i class="fas fa-save me-1"></i>Save Changes
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary"
+                                id="cancelProfileBtn">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- NEW: Subscription & Billing Card -->
+            <div class="card border-0 shadow-sm mb-4" id="billing-card">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-file-invoice-dollar me-2"></i> Subscription & Billing
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Your current plan requires a monthly payment to keep your account active.</p>
+
+                    <!-- M-Pesa BuyGoods Sticker Placeholder -->
+                    <div class="text-center my-3">
+                        <div class="border p-3 rounded bg-light">
+                            <p class="mb-1 fw-bold">Payments are processed via our official M-Pesa till <br>
+                                <span class="text-success">(in the founder’s name)</span>.
+                            </p>
+                            <p class="text-muted small mb-0">Business till upgrade is underway.</p>
+                            <img src="/static/images/mpesa-buygoods.jpg" alt="M-Pesa BuyGoods" class="img-fluid mt-2"
+                                style="max-height: 200px;">
+                        </div>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('main.submit_receipt') }}">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Monthly Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">KES</span>
+                                    <input type="text" class="form-control" value="750" disabled>
+                                    <p class="text-muted small mb-0">First time payment is KES 1,000( 250 - Activation
+                                        Fee) .</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Your User Code</label>
+                                <input type="text" class="form-control" value="{{ current_user.user_code }}" disabled>
+                                <input type="hidden" name="user_code" value="{{ current_user.user_code }}">
+                            </div>
+                        </div>
+
+                        <!-- Manual Receipt Entry -->
+                        <div class="mt-3">
+                            <label for="mpesaReceipt" class="form-label fw-bold">Enter M-Pesa Receipt Number</label>
+                            <input type="text" class="form-control" id="mpesaReceipt" name="receipt"
+                                placeholder="e.g., QFG123XYZ" required>
+                            <button class="btn btn-primary mt-2 w-100" type="submit">
+                                <i class="fas fa-check-circle me-2"></i> Submit Receipt
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ===== PHARMACY INFO CARD ===== -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-hospital text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-store me-2"></i>Pharmacy Info</h5>
+                    <button type="button" class="btn btn-sm btn-primary" id="editPharmaBtn"
+                        aria-label="Edit pharmacy info">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="pharmacyNotification" class="alert d-none" role="alert"></div>
+                    <form id="pharmacyInfoForm" method="POST" action="{{ url_for('main.update_pharmacy') }}" novalidate>
+                        <input type="hidden" name="pharmacy_id" value="{{ current_user.pharmacy.id }}">
+                        <div class="row g-3">
+                            <!-- Read-only Fields -->
+                            <div class="col-md-6">
+                                <div class="form-label text-muted">Pharmacy Name</div>
+                                <div>{{ current_user.pharmacy.name }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-label text-muted">Location</div>
+                                <div>{{ current_user.pharmacy.location or 'Not specified' }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-label text-muted">Date Created</div>
+                                <div>{{ current_user.pharmacy.created_at | utc_to_eat | format_date('%Y-%m-%d') }}</div>
+                            </div>
+
+                            <!-- Editable Field -->
+                            <div class="col-md-6">
+                                <label for="pf_monthly_target" class="form-label text-muted">Monthly Sales
+                                    Target</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">KES</span>
+                                    <input id="pf_monthly_target" type="text" class="form-control" name="monthly_target"
+                                        inputmode="decimal" value="{{ current_user.pharmacy.monthly_target or '' }}"
+                                        disabled>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-none mt-3" id="pharmacyInfoFormActions">
+                            <button type="button" class="btn btn-hospital" id="savePharmaInfoBtn">
+                                <i class="fas fa-save me-1"></i>Save Changes
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="cancelPharmaBtn">Cancel</button>
+                        </div>
+                    </form>
+
+                    <!-- Progress Section -->
+                    <div class="mt-4 pt-3 border-top">
+                        <h5 class="d-flex align-items-center">
+                            <i class="fas fa-chart-line me-2 text-hospital"></i> Current Progress
+                        </h5>
+                        <div class="progress mb-2" style="height: 25px;">
+                            <div class="progress-bar bg-hospital" role="progressbar"
+                                style="width: {{ progress_percent }}%;" aria-valuenow="{{ progress_percent }}"
+                                aria-valuemin="0" aria-valuem="100">
+                                {{ progress_percent }}% of monthly target
+                            </div>
+                        </div>
+                        <p class="small text-muted mb-0">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Current month sales: {{ current_sales }} of KES {{ monthly_target }} target
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // ------------------ Helpers ------------------
+        function showNotification(message, type = 'info', area = 'profile') {
+            const notificationEl = document.getElementById(`${area}Notification`);
+            if (!notificationEl) return;
+
+            notificationEl.className = `alert alert-${type}`;
+            notificationEl.textContent = message;
+            notificationEl.classList.remove('d-none');
+
+            if (type !== 'success') {
+                setTimeout(() => notificationEl.classList.add('d-none'), 5000);
+            }
+        }
+
+        function getCsrf(form) {
+            const el = form.querySelector('input[name="csrf_token"]');
+            return el ? el.value : '';
+        }
+
+        function toggleEditing({ form, inputs, actionsEl, editBtn, enable }) {
+            if (enable) {
+                // Cache original values
+                inputs.forEach(i => {
+                    i.dataset.orig = i.value;
+                    i.disabled = false;
+                    i.focus(); // Focus first editable field
+                });
+                actionsEl.classList.remove('d-none');
+                editBtn.classList.add('d-none');
+            } else {
+                inputs.forEach(i => {
+                    i.value = i.dataset.orig ?? i.value;
+                    i.disabled = true;
+                });
+                actionsEl.classList.add('d-none');
+                editBtn.classList.remove('d-none');
+            }
+        }
+
+        async function postJSON(url, data, csrf) {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrf,
+                },
+                body: JSON.stringify(data)
+            });
+            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            return resp.json();
+        }
+
+        function formatCurrencyInput(input) {
+            // Format with commas while typing
+            const value = input.value.replace(/\D/g, '');
+            if (value) {
+                input.value = parseInt(value, 10).toLocaleString();
+            }
+        }
+
+        // ------------------ PROFILE FORM ------------------
+        const profileForm = document.getElementById('profileForm');
+        if (profileForm) {
+            const profileInputs = [...profileForm.querySelectorAll('input[name="full_name"], input[name="phone"], input[name="email"]')];
+            const profileActions = document.getElementById('profileFormActions');
+            const editProfileBtn = document.getElementById('editProfileBtn');
+            const cancelProfileBtn = document.getElementById('cancelProfileBtn');
+            const saveProfileBtn = document.getElementById('saveProfileBtn');
+
+            editProfileBtn?.addEventListener('click', () => {
+                toggleEditing({
+                    form: profileForm,
+                    inputs: profileInputs,
+                    actionsEl: profileActions,
+                    editBtn: editProfileBtn,
+                    enable: true
+                });
+            });
+
+            cancelProfileBtn?.addEventListener('click', () => {
+                toggleEditing({
+                    form: profileForm,
+                    inputs: profileInputs,
+                    actionsEl: profileActions,
+                    editBtn: editProfileBtn,
+                    enable: false
+                });
+            });
+
+            saveProfileBtn?.addEventListener('click', async () => {
+                const data = {
+                    user_id: profileForm.querySelector('input[name="user_id"]').value,
+                    full_name: profileForm.querySelector('input[name="full_name"]').value.trim(),
+                    phone: profileForm.querySelector('input[name="phone"]').value.trim(),
+                    email: profileForm.querySelector('input[name="email"]').value.trim(),
+                };
+
+                // Validation
+                if (!data.full_name) {
+                    showNotification('Full name is required.', 'warning', 'profile');
+                    return;
+                }
+                if (!data.phone) {
+                    showNotification('Phone number is required.', 'warning', 'profile');
+                    return;
+                }
+                if (data.email && !/^\S+@\S+\.\S+$/.test(data.email)) {
+                    showNotification('Invalid email format.', 'warning', 'profile');
+                    return;
+                }
+
+                saveProfileBtn.disabled = true;
+                saveProfileBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+                try {
+                    const json = await postJSON(profileForm.action, data, getCsrf(profileForm));
+                    if (json.success) {
+                        profileInputs.forEach(i => { i.dataset.orig = i.value; });
+                        showNotification('Profile updated successfully!', 'success', 'profile');
+                        toggleEditing({
+                            form: profileForm,
+                            inputs: profileInputs,
+                            actionsEl: profileActions,
+                            editBtn: editProfileBtn,
+                            enable: false
+                        });
+                    } else {
+                        showNotification(json.message || 'Failed to update profile.', 'danger', 'profile');
+                    }
+                } catch (err) {
+                    console.error('Profile update error:', err);
+                    showNotification('Server error updating profile.', 'danger', 'profile');
+                } finally {
+                    saveProfileBtn.disabled = false;
+                    saveProfileBtn.innerHTML = '<i class="fas fa-save me-1"></i>Save Changes';
+                }
+            });
+        }
+
+        // ------------------ PHARMACY FORM ------------------
+        const pharmaForm = document.getElementById('pharmacyInfoForm');
+        if (pharmaForm) {
+            const pharmaTargetInput = pharmaForm.querySelector('input[name="monthly_target"]');
+            const pharmaInputs = [pharmaTargetInput];
+            const pharmaActions = document.getElementById('pharmacyInfoFormActions');
+            const editPharmaBtn = document.getElementById('editPharmaBtn');
+            const cancelPharmaBtn = document.getElementById('cancelPharmaBtn');
+            const savePharmaInfoBtn = document.getElementById('savePharmaInfoBtn');
+
+            // Add input formatting for currency
+            pharmaTargetInput?.addEventListener('input', () => formatCurrencyInput(pharmaTargetInput));
+
+            editPharmaBtn?.addEventListener('click', () => {
+                toggleEditing({
+                    form: pharmaForm,
+                    inputs: pharmaInputs,
+                    actionsEl: pharmaActions,
+                    editBtn: editPharmaBtn,
+                    enable: true
+                });
+            });
+
+            cancelPharmaBtn?.addEventListener('click', () => {
+                toggleEditing({
+                    form: pharmaForm,
+                    inputs: pharmaInputs,
+                    actionsEl: pharmaActions,
+                    editBtn: editPharmaBtn,
+                    enable: false
+                });
+            });
+
+            savePharmaInfoBtn?.addEventListener('click', async () => {
+                // Strip formatting before validation
+                const raw = pharmaTargetInput.value.replace(/\D/g, '');
+                if (!raw) {
+                    showNotification('Monthly target is required.', 'warning', 'pharmacy');
+                    return;
+                }
+                if (isNaN(raw)) {
+                    showNotification('Monthly target must be a number.', 'warning', 'pharmacy');
+                    return;
+                }
+
+                const data = {
+                    pharmacy_id: pharmaForm.querySelector('input[name="pharmacy_id"]').value,
+                    monthly_target: raw,
+                };
+
+                savePharmaInfoBtn.disabled = true;
+                savePharmaInfoBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+                try {
+                    const json = await postJSON(pharmaForm.action, data, getCsrf(pharmaForm));
+                    if (json.success) {
+                        // Format number with locale
+                        const num = Number(raw);
+                        pharmaTargetInput.value = isNaN(num) ? raw : num.toLocaleString();
+                        pharmaTargetInput.dataset.orig = pharmaTargetInput.value;
+                        showNotification('Pharmacy target updated!', 'success', 'pharmacy');
+                        toggleEditing({
+                            form: pharmaForm,
+                            inputs: pharmaInputs,
+                            actionsEl: pharmaActions,
+                            editBtn: editPharmaBtn,
+                            enable: false
+                        });
+
+                        // Update progress bar if needed
+                        if (typeof updateProgressBar === 'function') {
+                            updateProgressBar();
+                        }
+                    } else {
+                        showNotification(json.message || 'Failed to update pharmacy info.', 'danger', 'pharmacy');
+                    }
+                } catch (err) {
+                    console.error('Pharmacy update error:', err);
+                    showNotification('Server error updating pharmacy info.', 'danger', 'pharmacy');
+                } finally {
+                    savePharmaInfoBtn.disabled = false;
+                    savePharmaInfoBtn.innerHTML = '<i class="fas fa-save me-1"></i>Save Changes';
+                }
+            });
+        }
+    });
+</script>
+<style>
+    .list-group-item.active {
+        background-color: var(--hospital-light);
+        border-color: rgba(0, 0, 0, .125);
+        color: var(--hospital-dark);
+        font-weight: 500;
+    }
+
+    .list-group-item a {
+        transition: all 0.2s;
+    }
+
+    .list-group-item:not(.active):hover {
+        background-color: #f8f9fa;
+    }
+
+    .list-group-item:not(.active):hover a {
+        color: var(--hospital-color) !important;
+    }
+
+    .card-header {
+        border-radius: 0.5rem 0.5rem 0 0 !important;
+    }
+
+    .btn-success {
+        background-color: #198754;
+        border-color: #198754;
+    }
+</style>
+{% endblock %}

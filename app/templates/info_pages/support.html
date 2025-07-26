@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('main.home') }}"><i class="fas fa-home me-1"></i>Home</a>
+</li>
+
+{% if current_user.is_authenticated %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}"><i
+            class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
+</li>
+{% else %}
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('auth.register') }}"><i class="fas fa-user-plus me-1"></i>Register</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt me-1"></i>Login</a>
+</li>
+{% endif %}
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('main.features') }}"><i class="fas fa-star me-1"></i>Features</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link active" href="{{ url_for('main.support') }}"><i class="fas fa-headset me-1"></i>Support</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Support Header -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-hospital text-white border-0 shadow-lg">
+                <div class="card-body p-4 p-md-5">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="display-5 fw-bold mb-3"><i class="fas fa-headset me-3"></i>Support & Help Center
+                            </h1>
+                            <p class="lead mb-0 opacity-75">Quick answers and assistance for PharmaDesk users</p>
+                        </div>
+                        <div class="col-md-4 d-none d-md-block text-center">
+                            <i class="fas fa-question-circle fa-5x opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row g-4">
+        <!-- FAQ Section -->
+        <div class="col-lg-8">
+            <div class="card feature-card">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-question-circle me-2"></i> Frequently Asked Questions
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="faqAccordion">
+                        <!-- Getting Started -->
+                        <div class="accordion-item border-0 mb-3">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button bg-hospital-light" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#gettingStarted">
+                                    <i class="fas fa-play-circle me-2 text-hospital"></i> Getting Started
+                                </button>
+                            </h2>
+                            <div id="gettingStarted" class="accordion-collapse collapse show"
+                                data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <div class="faq-item mb-4">
+                                        <h5 class="d-flex align-items-center">
+                                            <i class="fas fa-key me-2 text-hospital"></i> How do I reset my password?
+                                        </h5>
+                                        <p>Click on "Recover Access" on the login page, enter your registered email
+                                            address, and follow the instructions sent to your email. If you don't
+                                            receive the email within 5 minutes, check your spam folder.</p>
+                                    </div>
+
+                                    <div class="faq-item mb-4">
+                                        <h5 class="d-flex align-items-center">
+                                            <i class="fas fa-cash-register me-2 text-hospital"></i> How do I record a
+                                            sale?
+                                        </h5>
+                                        <p>Navigate to the Sales section, enter the medication name (with live search),
+                                            enter the quantity, select payment method (Cash or M-Pesa), and click
+                                            "Process payment". The system will automatically update inventory and
+                                            generate a receipt.</p>
+                                        <div class="alert alert-hospital-light small mt-2">
+                                            <i class="fas fa-info-circle me-2 text-hospital"></i> For M-Pesa payments,
+                                            ensure you have stable internet connection
+                                        </div>
+                                    </div>
+
+                                    <div class="faq-item">
+                                        <h5 class="d-flex align-items-center">
+                                            <i class="fas fa-wifi me-2 text-hospital"></i> Can I process M-Pesa payments
+                                            offline?
+                                        </h5>
+                                        <p>PharmaDesk requires internet connectivity for M-Pesa transactions to ensure
+                                            secure payment processing and real-time confirmation.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Inventory Management -->
+                        <div class="accordion-item border-0">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed bg-hospital-light" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#inventory">
+                                    <i class="fas fa-pills me-2 text-hospital"></i> Inventory Management
+                                </button>
+                            </h2>
+                            <div id="inventory" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    <div class="faq-item mb-4">
+                                        <h5 class="d-flex align-items-center">
+                                            <i class="fas fa-bell me-2 text-hospital"></i> How do I set up low stock
+                                            alerts?
+                                        </h5>
+                                        <p>Go to Inventory Settings, select each medication, and set your minimum stock
+                                            threshold (default is 5 units). The system will automatically alert you when
+                                            stock falls below this level.</p>
+                                    </div>
+
+                                    <div class="faq-item">
+                                        <h5 class="d-flex align-items-center">
+                                            <i class="fas fa-calendar-times me-2 text-hospital"></i> What happens when
+                                            medicines expire?
+                                        </h5>
+                                        <p>PharmaDesk tracks expiry dates and sends alerts 30 days before expiration.
+                                            Expired items are automatically flagged in red and cannot be sold through
+                                            the system.</p>
+                                        <div class="alert alert-hospital-light small mt-2">
+                                            <i class="fas fa-exclamation-triangle me-2 text-hospital"></i> Expired
+                                            medications should be removed from shelves as per Pharmacy and Poisons Board
+                                            regulations
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Troubleshooting Section -->
+            <div class="card feature-card mt-4">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-tools me-2"></i> Troubleshooting Tips
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Payment Issues -->
+                        <div class="col-md-6">
+                            <div class="d-flex mb-4">
+                                <div class="me-3 text-hospital">
+                                    <i class="fas fa-money-bill-wave fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5>Payment Issues</h5>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2"><i class="fas fa-check-circle me-2 text-hospital"></i> Verify
+                                            customer phone number for M-Pesa</li>
+                                        <li class="mb-2"><i class="fas fa-check-circle me-2 text-hospital"></i> Ensure
+                                            sufficient customer balance</li>
+                                        <li><i class="fas fa-check-circle me-2 text-hospital"></i> Always provide
+                                            printed receipts</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Performance -->
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-hospital">
+                                    <i class="fas fa-tachometer-alt fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5>System Performance</h5>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2"><i class="fas fa-check-circle me-2 text-hospital"></i> Clear
+                                            browser cache if slow</li>
+                                        <li class="mb-2"><i class="fas fa-check-circle me-2 text-hospital"></i> Ensure
+                                            stable internet connection</li>
+                                        <li><i class="fas fa-check-circle me-2 text-hospital"></i> Contact support for
+                                            disconnections</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-sync-alt me-2"></i> If facing issues, first try refreshing the page or clearing
+                        your browser cache before contacting support.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="col-lg-4">
+            <div class="card feature-card h-100">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-envelope me-2"></i> Contact Support
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-start mb-4">
+                        <div class="me-3 text-hospital">
+                            <i class="fas fa-at fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5>Email Support</h5>
+                            <a href="mailto:support@pharmadesk.co.ke"
+                                class="text-decoration-none">support@pharmadesk.co.ke</a>
+                            <p class="small text-muted mt-1">Typically responds within 2 business hours</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-start mb-4">
+                        <div class="me-3 text-hospital">
+                            <i class="fas fa-phone-alt fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5>Phone Support</h5>
+                            <p class="mb-1">+254 115 082 970</p>
+                            <p class="small text-muted">Monday - Friday, 8:00 AM - 6:00 PM EAT</p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-start mb-4">
+                        <div class="me-3 text-hospital">
+                            <i class="fab fa-whatsapp fa-2x"></i>
+                        </div>
+                        <div>
+                            <h5>WhatsApp</h5>
+                            <p class="mb-1">+254 115 082 970</p>
+                            <p class="small text-muted">24/7 automated responses</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="alert alert-hospital-light">
+                        <h5><i class="fas fa-lightbulb me-2 text-hospital"></i> For Faster Help</h5>
+                        <p class="small mb-0">Include your:</p>
+                        <ul class="small mb-0">
+                            <li>Pharmacy name</li>
+                            <li>User ID</li>
+                            <li>Detailed issue description</li>
+                            <li>Screenshot if possible</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-danger small">
+                        <i class="fas fa-exclamation-triangle me-2"></i> <strong>Emergency Support:</strong> Available
+                        24/7 for critical system issues affecting operations
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .faq-item {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        padding-bottom: 1rem;
+    }
+
+    .faq-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: var(--hospital-light);
+        color: var(--hospital-dark);
+    }
+
+    .accordion-button:focus {
+        box-shadow: 0 0 0 0.25rem rgba(26, 109, 140, 0.25);
+    }
+
+    .alert-hospital-light {
+        background-color: var(--hospital-light);
+        border-left: 4px solid var(--hospital-color);
+    }
+</style>
+{% endblock %}

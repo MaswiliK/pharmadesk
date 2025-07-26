@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block navbar_items %}
+<li class="nav-item mx-1">
+    <a class="nav-link" href="{{ url_for('main.home') }}">Home</a>
+</li>
+<li class="nav-item">
+    <a class="btn btn-outline-light" href="{{ url_for('auth.logout') }}">Logout</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h1 class="display-1 text-hospital">500</h1>
+    <p class="lead">Internal Server Error</p>
+    <p>We're experiencing technical difficulties. Please try again later.</p>
+    <div class="mt-4">
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-hospital me-2">
+            Dashboard
+        </a>
+        <a href="mailto:support@pharmadesk.co.ke" class="btn btn-outline-hospital">
+            Contact Support
+        </a>
+    </div>
+</div>
+{% endblock %}

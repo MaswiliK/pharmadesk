@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Sales History{% endblock %}
+{% set active = 'sales' %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'inventory' }}"
+        href="{{ url_for('main.inventory_summary') }}">Inventory</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'sales' }}" href="{{ url_for('main.sales_processing') }}">Sales</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'reports' }}"
+        href="{{ url_for('main.analytics_dashboard') }}">Reports</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-hospital text-white d-flex flex-wrap justify-content-between align-items-center">
+        <h5 class="mb-2 mb-md-0"><i class="fas fa-history me-2"></i>Sales History</h5>
+        <form method="GET" action="{{ url_for('main.sales_history') }}" class="d-flex flex-wrap gap-2 align-items-end">
+            <div>
+                <label class="form-label mb-1">Start Date</label>
+                <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm">
+            </div>
+            <div>
+                <label class="form-label mb-1">End Date</label>
+                <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm">
+            </div>
+            <div>
+                <label class="form-label mb-1">Product</label>
+                <select name="product_id" class="form-select form-select-sm">
+                    <option value="">All Products</option>
+                    {% for product in products %}
+                    <option value="{{ product.id }}" {% if selected_product==product.id %}selected{% endif %}>
+                        {{ product.name }} ({{ product.dosage }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-light btn-sm mt-3">
+                    <i class="fas fa-filter me-1"></i> Filter
+                </button>
+                <a href="{{ url_for('main.sales_history') }}" class="btn btn-outline-light btn-sm mt-3">
+                    <i class="fas fa-sync-alt"></i> Reset
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Transaction ID</th>
+                        <th>Products</th>
+                        <th>Total Quantity</th>
+                        <th>Total</th>
+                        <th>Payment</th>
+                        <th>Customer</th>
+                        <th>Receipt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if sales.items %}
+                    {% set grouped = {} %}
+                    {% for sale in sales.items %}
+                    {# Group by transaction_id directly if available, otherwise fallback to old grouping #}
+                    {% set key_id = sale.transaction_id if sale.transaction_id else (sale.sale_time | utc_to_eat |
+                    format_date('%Y-%m-%d %H:%M') ~ '-' ~ (sale.customer_name or 'Walk-in Customer') ~ '-' ~
+                    sale.payment_method.value) %}
+
+                    {% if key_id not in grouped %}
+                    {% set _ = grouped.update({key_id: {
+                    'datetime': sale.sale_time | utc_to_eat |
+                    format_date('%Y-%m-%d %H:%M'),
+                    'customer': sale.customer_name or 'Walk-in Customer',
+                    'payment': sale.payment_method.value,
+                    'sales': [],
+                    'total': 0,
+                    'quantity': 0,
+                    'transaction_id': sale.transaction_id
+                    }}) %}
+                    {% endif %}
+                    {% set _ = grouped[key_id]['sales'].append(sale) %}
+                    {% set _ = grouped[key_id].update({'total': grouped[key_id]['total'] + sale.total_price, 'quantity':
+                    grouped[key_id]['quantity'] + sale.quantity}) %}
+                    {% endfor %}
+                    {% for group in grouped.values() %}
+                    <tr>
+                        <td>{{ group.datetime }}</td>
+                        <td>{{ group.transaction_id }}</td>
+                        <td>
+                            <ul class="mb-0 ps-3">
+                                {% for sale in group.sales %}
+                                <li>{{ sale.product.name }} ({{ sale.product.dosage }}) x{{ sale.quantity }} @ {{
+                                    sale.unit_price|currency }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                        <td>{{ group.quantity }}</td>
+                        <td>{{ group.total|currency }}</td>
+                        <td>{{ group.payment }}</td>
+                        <td>{{ group.customer }}</td>
+                        <td>
+                            <a href="{{ url_for('main.view_receipt', transaction_id=group.transaction_id) }}"
+                                class="btn btn-outline-success btn-sm" title="Download Receipt">
+                                <i class="fas fa-receipt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">No sales records found</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if sales.pages > 1 %}
+        <nav class="mt-3" aria-label="Sales pagination">
+            <ul class="pagination justify-content-center">
+                {% if sales.has_prev %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="{{ url_for('main.sales_history', page=sales.prev_num, start_date=start_date, end_date=end_date, product_id=selected_product) }}">
+                        Previous
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for page_num in sales.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if page_num %}
+                <li class="page-item {% if page_num == sales.page %}active{% endif %}">
+                    <a class="page-link"
+                        href="{{ url_for('main.sales_history', page=page_num, start_date=start_date, end_date=end_date, product_id=selected_product) }}">
+                        {{ page_num }}
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+                {% endfor %}
+
+                {% if sales.has_next %}
+                <li class="page-item">
+                    <a class="page-link"
+                        href="{{ url_for('main.sales_history', page=sales.next_num, start_date=start_date, end_date=end_date, product_id=selected_product) }}">
+                        Next
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        <div class="mt-3 text-end">
+            <strong>Total Sales:</strong> {{ sales_total|currency if sales_total else '0.00' }}
+            {% if selected_product_name %}
+            <span class="ms-3">
+                <strong>Filtered Product:</strong> {{ selected_product_name }}
+            </span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

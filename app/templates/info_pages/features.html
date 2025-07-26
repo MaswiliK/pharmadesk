@@ -1,0 +1,517 @@
+{% extends "base.html" %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('main.home') }}"><i class="fas fa-home me-1"></i>Home</a>
+</li>
+
+{% if current_user.is_authenticated %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}"><i
+            class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
+</li>
+{% else %}
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('auth.register') }}"><i class="fas fa-user-plus me-1"></i>Register</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt me-1"></i>Login</a>
+</li>
+{% endif %}
+
+<li class="nav-item">
+    <a class="nav-link active" href="{{ url_for('main.features') }}"><i class="fas fa-star me-1"></i>Features</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Hero Section -->
+    <section class="features-hero"
+        style="background: linear-gradient(rgba(26, 109, 140, 0.9), rgba(26, 109, 140, 0.9)), url('{{ url_for('static', filename='images/pharmacy-counter.jpg') }}')">
+        <div class="container py-5">
+            <div class="row align-items-center">
+                <div class="col-lg-6 text-white">
+                    <h1 class="display-4 fw-bold mb-4">PharmaDesk POS Features</h1>
+                    <p class="lead mb-4">Modern pharmacy management designed for Kenyan pharmacies</p>
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg rounded-pill px-4">
+                            <i class="fas fa-rocket me-2"></i>Start Free Trial
+                        </a>
+                        <a href="#video-demo" class="btn btn-outline-light btn-lg rounded-pill px-4">
+                            <i class="fas fa-play me-2"></i>Watch Demo
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6 d-none d-lg-block">
+                    <div class="mockup-wrapper">
+                        <img src="{{ url_for('static', filename='images/pos-mockup.png') }}" alt="POS Interface"
+                            class="img-fluid floating-mockup">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Video Demo Section -->
+    <section id="video-demo" class="py-5 bg-light">
+        <div class="container py-4">
+            <div class="row justify-content-center mb-5">
+                <div class="col-lg-8 text-center">
+                    <h2 class="fw-bold mb-3"><i class="fas fa-play-circle text-hospital me-2"></i>See PharmaDesk in
+                        Action</h2>
+                    <p class="lead">Watch our 2-minute demo to see how PharmaDesk streamlines pharmacy operations</p>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="ratio ratio-16x9 rounded-4 shadow-lg overflow-hidden">
+                        <!-- Video placeholder - replace with actual embed code -->
+                        <div
+                            class="video-placeholder bg-dark text-white d-flex flex-column justify-content-center align-items-center">
+                            <i class="fas fa-play-circle fa-5x mb-3"></i>
+                            <h4>PharmaDesk POS Demo</h4>
+                            <p>Coming soon: Video showcase of key features</p>
+                        </div>
+                        <!-- Actual embed would go here -->
+                        <!-- <iframe src="https://www.youtube.com/embed/..." allowfullscreen></iframe> -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Showcase -->
+    <section class="py-5">
+        <div class="container py-4">
+            <!-- Inventory Management -->
+            <div class="row align-items-center feature-row mb-5">
+                <div class="col-lg-6 order-lg-2">
+                    <div class="feature-visual rounded-4 shadow overflow-hidden">
+                        <img src="{{ url_for('static', filename='images/feature-inventory.jpg') }}"
+                            alt="Inventory Management" class="img-fluid">
+                        <div class="feature-badge">Live Demo</div>
+                    </div>
+                </div>
+                <div class="col-lg-6 order-lg-1 pe-lg-5">
+                    <div class="feature-content">
+                        <div class="badge bg-hospital-light text-hospital mb-3">Inventory</div>
+                        <h2 class="fw-bold mb-4">Smart Inventory Control</h2>
+                        <p class="lead">Automated tracking that keeps your pharmacy stocked and compliant</p>
+
+                        <div class="feature-points">
+                            <div class="point">
+                                <div class="point-icon bg-hospital text-white">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5>Expiry Date Monitoring</h5>
+                                    <p>Advanced alerts 30, 60, and 90 days before expiration to prevent losses</p>
+                                </div>
+                            </div>
+
+                            <div class="point">
+                                <div class="point-icon bg-hospital text-white">
+                                    <i class="fas fa-box-open"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5>Low Stock Alerts</h5>
+                                    <p>Customizable minimum stock thresholds for each medication</p>
+                                </div>
+                            </div>
+
+                            <div class="point">
+                                <div class="point-icon bg-hospital text-white">
+                                    <i class="fas fa-people-carry"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5>Supplier Management</h5>
+                                    <p>Track multiple suppliers and streamline purchase orders</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Processing -->
+            <div class="row align-items-center feature-row mb-5">
+                <div class="col-lg-6">
+                    <div class="feature-visual rounded-4 shadow overflow-hidden">
+                        <img src="{{ url_for('static', filename='images/feature-payments.jpg') }}"
+                            alt="Payment Processing" class="img-fluid">
+                        <div class="feature-badge">Interactive</div>
+                    </div>
+                </div>
+                <div class="col-lg-6 ps-lg-5">
+                    <div class="feature-content">
+                        <div class="badge bg-hospital-light text-hospital mb-3">Payments</div>
+                        <h2 class="fw-bold mb-4">Seamless Payment Processing</h2>
+                        <p class="lead">Accept all payment methods your customers prefer</p>
+
+                        <div class="feature-points">
+                            <div class="point">
+                                <div class="point-icon bg-hospital text-white">
+                                    <i class="fas fa-mobile-alt"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5>M-Pesa Integration</h5>
+                                    <p>Direct M-Pesa payments with real-time confirmation</p>
+                                </div>
+                            </div>
+
+                            <div class="point">
+                                <div class="point-icon bg-hospital text-white">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5>Cash & Card Support</h5>
+                                    <p>Comprehensive cash tracking and secure card processing</p>
+                                </div>
+                            </div>
+
+                            <div class="point">
+                                <div class="point-icon bg-hospital text-white">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5>VAT-Compliant Receipts</h5>
+                                    <p>Instant printed receipts meeting Kenyan tax requirements</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales Management -->
+            <div class="row align-items-center feature-row mb-5">
+                <div class="col-lg-6 order-lg-2">
+                    <div class="feature-visual rounded-4 shadow overflow-hidden">
+                        <div class="pos-interface-demo">
+                            <!-- POS interface animation placeholder -->
+                            <div class="pos-screen">
+                                <div class="pos-header bg-hospital text-white">
+                                    <i class="fas fa-shopping-cart me-2"></i> New Sale
+                                </div>
+                                <div class="pos-items">
+                                    <div class="pos-item">
+                                        <span class="item-name">Panadol Extra</span>
+                                        <span class="item-price">KES 120</span>
+                                    </div>
+                                    <div class="pos-item">
+                                        <span class="item-name">Antacid Tablets</span>
+                                        <span class="item-price">KES 85</span>
+                                    </div>
+                                    <div class="pos-item">
+                                        <span class="item-name">Vitamin C</span>
+                                        <span class="item-price">KES 250</span>
+                                    </div>
+                                </div>
+                                <div class="pos-total bg-light">
+                                    Total: <span class="amount">KES 455</span>
+                                </div>
+                                <div class="pos-payment-options">
+                                    <button class="payment-option"><i class="fas fa-money-bill-wave"></i> Cash</button>
+                                    <button class="payment-option active"><i class="fas fa-mobile-alt"></i>
+                                        M-Pesa</button>
+                                    <button class="payment-option"><i class="fas fa-credit-card"></i> Card</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 order-lg-1 pe-lg-5">
+                    <div class="feature-content">
+                        <div class="badge bg-hospital-light text-hospital mb-3">Sales</div>
+                        <h2 class="fw-bold mb-4">Effortless Sales Processing</h2>
+                        <p class="lead">Checkout faster with intuitive sales tools</p>
+
+                        <div class="feature-points">
+                            <div class="point">
+                                <div class="point-icon bg-hospital text-white">
+                                    <i class="fas fa-barcode"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5>Barcode Scanning</h5>
+                                    <p>Quickly add items by scanning barcodes or searching products</p>
+                                </div>
+                            </div>
+
+                            <div class="point">
+                                <div class="point-icon bg-hospital text-white">
+                                    <i class="fas fa-shopping-cart"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5>Cart System</h5>
+                                    <p>Add multiple items before completing transaction</p>
+                                </div>
+                            </div>
+
+                            <div class="point">
+                                <div class="point-icon bg-hospital text-white">
+                                    <i class="fas fa-user-clock"></i>
+                                </div>
+                                <div class="point-content">
+                                    <h5>Customer Profiles</h5>
+                                    <p>Track purchase history and preferences for better service</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- All Features Grid -->
+    <section class="py-5 bg-light">
+        <div class="container py-4">
+            <div class="row justify-content-center mb-5">
+                <div class="col-lg-8 text-center">
+                    <h2 class="fw-bold mb-3">Complete Pharmacy Management Solution</h2>
+                    <p class="lead">Everything you need to run your pharmacy efficiently</p>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Reports & Analytics -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card card h-100 border-0 shadow-sm">
+                        <div class="card-img-top bg-hospital text-white text-center py-4">
+                            <i class="fas fa-chart-pie fa-3x"></i>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="h4">Reports & Analytics</h3>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check-circle text-hospital me-2"></i> Daily sales
+                                    summaries</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-hospital me-2"></i> Inventory
+                                    insights</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-hospital me-2"></i> Financial
+                                    analytics</li>
+                                <li><i class="fas fa-check-circle text-hospital me-2"></i> PPB compliance reports</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security & Compliance -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card card h-100 border-0 shadow-sm">
+                        <div class="card-img-top bg-hospital text-white text-center py-4">
+                            <i class="fas fa-shield-alt fa-3x"></i>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="h4">Security & Compliance</h3>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check-circle text-hospital me-2"></i> User access
+                                    controls</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-hospital me-2"></i> Automatic
+                                    backups</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-hospital me-2"></i> Complete audit
+                                    trails</li>
+                                <li><i class="fas fa-check-circle text-hospital me-2"></i> PPB requirements built-in
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Smart Automation -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card card h-100 border-0 shadow-sm">
+                        <div class="card-img-top bg-hospital text-white text-center py-4">
+                            <i class="fas fa-robot fa-3x"></i>
+                        </div>
+                        <div class="card-body">
+                            <h3 class="h4">Smart Automation</h3>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check-circle text-hospital me-2"></i> Reorder
+                                    suggestions</li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-hospital me-2"></i> Price updates
+                                </li>
+                                <li class="mb-2"><i class="fas fa-check-circle text-hospital me-2"></i> Expiry
+                                    notifications</li>
+                                <li><i class="fas fa-check-circle text-hospital me-2"></i> Daily summary reports</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5 bg-hospital text-white">
+        <div class="container py-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <h2 class="display-5 fw-bold mb-4">Ready to Transform Your Pharmacy?</h2>
+                    <p class="lead mb-5">Join hundreds of Kenyan pharmacies using PharmaDesk to streamline operations
+                        and improve patient care.</p>
+                    <div class="d-flex flex-wrap justify-content-center gap-3">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg rounded-pill px-4 py-3">
+                            <i class="fas fa-rocket me-2"></i>Start 3-Day Free Trial
+                        </a>
+                        <a href="#video-demo" class="btn btn-outline-light btn-lg rounded-pill px-4 py-3">
+                            <i class="fas fa-play me-2"></i>Watch Product Demo
+                        </a>
+                    </div>
+                    <p class="mt-4 mb-0"><i class="fas fa-phone-alt me-2"></i> Questions? Call +254 115 082 970 or email
+                        hello@pharmadesk.co.ke</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    /* Hero Section */
+    .features-hero {
+        background-size: cover;
+        background-position: center;
+        padding: 6rem 0;
+        color: white;
+    }
+
+    .floating-mockup {
+        animation: float 6s ease-in-out infinite;
+        filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.2));
+    }
+
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-20px);
+        }
+    }
+
+    /* Feature Rows */
+    .feature-row {
+        padding: 4rem 0;
+    }
+
+    .feature-visual {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .feature-visual:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .feature-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--hospital-dark);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+    }
+
+    /* Feature Points */
+    .feature-points .point {
+        display: flex;
+        margin-bottom: 1.5rem;
+    }
+
+    .point-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-right: 1rem;
+        font-size: 1.2rem;
+    }
+
+    .point-content h5 {
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+    }
+
+    /* POS Interface Demo */
+    .pos-interface-demo {
+        background: #f8f9fa;
+        padding: 2rem;
+        border-radius: 12px;
+    }
+
+    .pos-screen {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .pos-header {
+        padding: 12px 15px;
+        font-weight: 600;
+    }
+
+    .pos-items {
+        padding: 15px;
+    }
+
+    .pos-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .pos-total {
+        padding: 15px;
+        text-align: right;
+        font-weight: 600;
+    }
+
+    .pos-payment-options {
+        display: flex;
+        padding: 10px;
+        background: #f5f5f5;
+    }
+
+    .payment-option {
+        flex: 1;
+        border: none;
+        background: white;
+        padding: 8px;
+        margin: 0 5px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+
+    .payment-option.active {
+        background: var(--hospital-color);
+        color: white;
+    }
+
+    /* Responsive Adjustments */
+    @media (max-width: 992px) {
+        .feature-row {
+            padding: 2rem 0;
+        }
+
+        .feature-content {
+            margin-bottom: 2rem;
+        }
+    }
+</style>
+{% endblock %}

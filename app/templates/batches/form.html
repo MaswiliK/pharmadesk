@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('main.batch_list') }}">Batch list</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow-sm">
+
+        <h2>{{ 'Edit Batch' if batch else 'Add Batch' }}</h2>
+
+        <div class="card-body">
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="row g-3">
+                    <div class="mb-3">
+                        <label for="batch_number" class="form-label">Batch Number</label>
+                        {{ form.batch_number(class="form-control", id="batch_number") }}
+                        {% for error in form.batch_number.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="manufacture_date" class="form-label">Manufacture Date</label>
+                        {{ form.manufacture_date(class="form-control", id="manufacture_date") }}
+                        {% for error in form.manufacture_date.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="expiry_date" class="form-label">Expiry Date</label>
+                        {{ form.expiry_date(class="form-control", id="expiry_date") }}
+                        {% for error in form.expiry_date.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="order_quantity" class="form-label">Order Quantity</label>
+                        {{ form.order_quantity(class="form-control", id="order_quantity") }}
+                        {% for error in form.order_quantity.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="supplier" class="form-label">Supplier</label>
+                        {{ form.supplier(class="form-control", id="supplier") }}
+                        {% for error in form.supplier.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="supplier_contact" class="form-label">Supplier Contact</label>
+                        {{ form.supplier_contact(class="form-control", id="supplier_contact") }}
+                        {% for error in form.supplier_contact.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="product_id" class="form-label">Product</label>
+                        {{ form.product_id(class="form-control", id="product_id") }}
+                        {% for error in form.product_id.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-hospital">
+                        <i class="fas fa-save me-2"></i>Save Batch
+                    </button>
+                    <a href="{{ url_for('main.batch_list') }}" class="btn btn-outline-hospital">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block navbar_items %}
+<li class="nav-item mx-1">
+    <a class="nav-link" href="{{ url_for('main.home') }}">Home</a>
+</li>
+<li class="nav-item">
+    <a class="btn btn-outline-light" href="{{ url_for('auth.logout') }}">Logout</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h1 class="display-1 text-hospital">404</h1>
+    <p class="lead">Page Not Found</p>
+    <p>The requested page could not be located.</p>
+    <a href="{{ url_for('main.dashboard') }}" class="btn btn-hospital">
+        Return to Dashboard
+    </a>
+</div>
+{% endblock %}

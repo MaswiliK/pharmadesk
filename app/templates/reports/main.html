@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}Business Reports{% endblock %}
+{% set active = 'reports' %}
+
+{% block navbar_items %}
+<li class="nav-item">
+  <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link {{ 'active' if active == 'expenses' }}" href="{{ url_for('main.expenses') }}">Expenses</a>
+</li>
+<li class="nav-item">
+  <a class="nav-link {{ 'active' if active == 'reports' }}" href="{{ url_for('main.analytics_dashboard') }}">Reports</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12 mb-4">
+    <div class="page-header text-center">
+      <h1>Business Analytics</h1>
+      <p class="lead">Detailed insights into pharmacy operations</p>
+    </div>
+  </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-light d-flex align-items-center"> <i class="fas fa-calendar-alt me-2 text-hospital"></i>
+    <h5 class="mb-0 text-dark">Filter Data by Date Range</h5>
+  </div>
+  <div class="card-body">
+    <p class="text-muted mb-3">
+      Apply a date filter to see **Product Performance** for a specific period. The "Sales Trends" chart always shows
+      the last 7 days.
+    </p>
+    <form method="GET" action="{{ url_for('main.analytics_dashboard') }}" class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label for="start" class="form-label fw-bold">Start Date</label>
+        <input type="date" class="form-control" id="start" name="start" value="{{ request.args.get('start', '') }}">
+      </div>
+      <div class="col-md-3">
+        <label for="end" class="form-label fw-bold">End Date</label>
+        <input type="date" class="form-control" id="end" name="end" value="{{ request.args.get('end', '') }}">
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-hospital w-100">
+          <i class="fas fa-filter me-2"></i>Filter
+        </button>
+      </div>
+      <div class="col-md-2">
+        <a href="{{ url_for('main.analytics_dashboard') }}" class="btn btn-outline-secondary w-100">
+          <i class="fas fa-redo me-2"></i>Reset
+        </a>
+      </div>
+      <div class="col-md-2">
+        <a href="{{ url_for('main.export_sales_csv', start=request.args.get('start'), end=request.args.get('end')) }}"
+          class="btn btn-outline-success w-100">
+          <i class="fas fa-file-csv me-2"></i> Export CSV
+        </a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Sales Chart -->
+  <div class="col-md-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-hospital text-white">
+        <i class="fas fa-chart-bar"></i> Sales Trends
+      </div>
+      <div class="card-body">
+        <h4 class="text-lg font-semibold mb-2">Sales Breakdown - Last 7 Days</h4>
+        <canvas id="paymentBreakdownChart" height="100"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-header bg-hospital text-white">
+        <i class="fas fa-tachometer-alt"></i> Performance Metrics
+      </div>
+      <div class="card-body">
+        <div class="mb-4">
+          <h6>Today's Sales</h6>
+          <h3 class="text-hospital">{{ todays_sales or 'Ksh 0' }}</h3>
+        </div>
+        <div class="mb-4">
+          <h6>Monthly Target</h6>
+          <div class="progress mb-2">
+            <div class="progress-bar bg-hospital" role="progressbar" style="width: {{ target_percent }}%"
+              aria-valuenow="{{ target_percent }}" aria-valuemin="0" aria-valuemax="100">
+              {{ target_percent }}%
+            </div>
+          </div>
+          <div class="text-end"> <span class="text-muted">Target: Ksh {{ monthly_target }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Product Performance -->
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-header bg-hospital text-white">
+        <i class="fas fa-pills"></i> Product Performance (Top Selling)
+      </div>
+      <div class="card-body table-responsive">
+        <table class="table table-bordered table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Product</th>
+              <th>Units Sold</th>
+              <th>Total Revenue</th>
+              <th>Average Price</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in product_performance %}
+            <tr>
+              <td>{{ p.name }}</td>
+              <td>{{ p.units_sold }}</td>
+              <td>Ksh {{ "{:,.2f}".format(p.revenue) }}</td>
+              <td>Ksh {{ "{:,.2f}".format(p.avg_price) }}</td>
+            </tr>
+            {% endfor %}
+            {% if not product_performance %}
+            <tr>
+              <td colspan="4" class="text-center">No data found.</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const ctx = document.getElementById('paymentBreakdownChart');
+    if (!ctx) return;
+
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: {{ chart_labels | tojson }},
+    datasets: [
+    {
+      label: 'Cash Sales',
+      data: {{ chart_cash | tojson }},
+    borderColor: 'rgba(75, 192, 192, 1)',
+    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+    fill: true,
+    tension: 0.3
+                },
+    {
+      label: 'M-PESA Sales',
+      data: {{ chart_mpesa | tojson }},
+    borderColor: 'rgba(255, 159, 64, 1)',
+    backgroundColor: 'rgba(255, 159, 64, 0.2)',
+    fill: true,
+    tension: 0.3
+                }
+  ]
+        },
+    options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      title: { display: false }
+    },
+    scales: {
+      y: { beginAtZero: true }
+    }
+  }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('main.home') }}"><i class="fas fa-home me-1"></i>Home</a>
+</li>
+
+{% if current_user.is_authenticated %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}"><i
+            class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
+</li>
+{% else %}
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('auth.register') }}"><i class="fas fa-user-plus me-1"></i>Register</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt me-1"></i>Login</a>
+</li>
+{% endif %}
+
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('main.features') }}"><i class="fas fa-star me-1"></i>Features</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link active" href="{{ url_for('main.terms_of_service') }}"><i
+            class="fas fa-file-contract me-1"></i>Terms</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Terms Header -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-hospital text-white border-0 shadow-lg">
+                <div class="card-body p-4 p-md-5">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="display-5 fw-bold mb-3"><i class="fas fa-file-contract me-3"></i>Terms of Service
+                            </h1>
+                            <p class="lead mb-0 opacity-75">Last updated: June 12, 2025 | Governing Law: Kenya</p>
+                        </div>
+                        <div class="col-md-4 d-none d-md-block text-center">
+                            <i class="fas fa-balance-scale fa-5x opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Summary -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card feature-card">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-bolt me-2"></i> Key Points Summary
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-3 d-flex">
+                                    <div class="me-3 text-hospital">
+                                        <i class="fas fa-lock fa-lg"></i>
+                                    </div>
+                                    <div>Users are responsible for keeping account credentials secure</div>
+                                </li>
+                                <li class="mb-3 d-flex">
+                                    <div class="me-3 text-hospital">
+                                        <i class="fas fa-ban fa-lg"></i>
+                                    </div>
+                                    <div>Misuse of the system will lead to account suspension</div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li class="mb-3 d-flex">
+                                    <div class="me-3 text-hospital">
+                                        <i class="fas fa-exclamation-triangle fa-lg"></i>
+                                    </div>
+                                    <div>Not liable for business losses from incorrect data entry</div>
+                                </li>
+                                <li class="d-flex">
+                                    <div class="me-3 text-hospital">
+                                        <i class="fas fa-headset fa-lg"></i>
+                                    </div>
+                                    <div>Contact support for disputes or refund inquiries</div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Terms Content -->
+    <div class="row g-4">
+        <!-- Left Column -->
+        <div class="col-lg-6">
+            <!-- Agreement to Terms -->
+            <div class="card feature-card mb-4">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-signature me-2"></i> Agreement to Terms
+                </div>
+                <div class="card-body">
+                    <p>By accessing and using PharmaDesk ("the Service"), you agree to be bound by these Terms of
+                        Service and all applicable laws and regulations in Kenya.</p>
+                    <div class="alert alert-hospital-light">
+                        <i class="fas fa-exclamation-circle me-2 text-hospital"></i> If you do not agree with any of
+                        these terms, you are prohibited from using this service.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Service Description -->
+            <div class="card feature-card mb-4">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-info-circle me-2"></i> Service Description
+                </div>
+                <div class="card-body">
+                    <p>PharmaDesk is a web-based pharmacy point-of-sale and management system designed specifically for
+                        Kenyan pharmacies. The Service includes:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-pills me-3 text-hospital"></i>
+                            <span>Inventory management with PPB compliance features</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-cash-register me-3 text-hospital"></i>
+                            <span>Sales processing with M-Pesa integration</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-chart-bar me-3 text-hospital"></i>
+                            <span>Business and regulatory reporting</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Acceptable Use -->
+            <div class="card feature-card mb-4">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-check-circle me-2"></i> Acceptable Use
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="d-flex align-items-center text-hospital">
+                                <i class="fas fa-check me-2"></i> Permitted Uses
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> Managing
+                                    legitimate pharmacy operations</li>
+                                <li class="mb-2"><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> Processing
+                                    legal pharmaceutical sales</li>
+                                <li><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> Maintaining accurate
+                                    records</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="d-flex align-items-center text-hospital">
+                                <i class="fas fa-ban me-2"></i> Prohibited Uses
+                            </h5>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> Selling
+                                    controlled substances without PPB authorization</li>
+                                <li class="mb-2"><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> Processing
+                                    transactions for counterfeit medicines</li>
+                                <li><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> Any unlawful activities
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Security -->
+            <div class="card feature-card">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-user-shield me-2"></i> Account Security
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="d-flex align-items-center text-hospital">
+                                <i class="fas fa-user me-2"></i> Your Responsibilities
+                            </h5>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2"><i class="fas fa-key fa-xs me-2 text-hospital"></i> Maintain credential
+                                    confidentiality</li>
+                                <li class="mb-2"><i class="fas fa-shield-alt fa-xs me-2 text-hospital"></i> Use strong
+                                    passwords</li>
+                                <li><i class="fas fa-bell fa-xs me-2 text-hospital"></i> Report unauthorized access</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="d-flex align-items-center text-hospital">
+                                <i class="fas fa-building me-2"></i> Our Responsibilities
+                            </h5>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2"><i class="fas fa-lock fa-xs me-2 text-hospital"></i> Maintain security
+                                    measures</li>
+                                <li class="mb-2"><i class="fas fa-clock fa-xs me-2 text-hospital"></i> 99.5% uptime
+                                    guarantee</li>
+                                <li><i class="fas fa-headset fa-xs me-2 text-hospital"></i> Provide technical support
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-6">
+            <!-- Payment Terms -->
+            <div class="card feature-card mb-4">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-money-bill-wave me-2"></i> Payment Terms
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="d-flex align-items-center text-hospital">
+                                <i class="fas fa-calendar-alt me-2"></i> Subscription Fees
+                            </h5>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2"><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> Monthly
+                                    fees in KES</li>
+                                <li class="mb-2"><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> M-Pesa
+                                    payments accepted</li>
+                                <li><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> Late payments may cause
+                                    suspension</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="d-flex align-items-center text-hospital">
+                                <i class="fas fa-undo me-2"></i> Refund Policy
+                            </h5>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2"><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> No partial
+                                    month refunds</li>
+                                <li class="mb-2"><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> Pro-rated
+                                    annual refunds (30 days)</li>
+                                <li><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> Setup fees
+                                    non-refundable</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liability & Compliance -->
+            <div class="card feature-card mb-4">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-gavel me-2"></i> Liability & Compliance
+                </div>
+                <div class="card-body">
+                    <h5 class="d-flex align-items-center text-hospital">
+                        <i class="fas fa-exclamation-triangle me-2"></i> Limitation of Liability
+                    </h5>
+                    <ul class="list-group list-group-flush mb-3">
+                        <li class="list-group-item">Service provided "as is" without warranties</li>
+                        <li class="list-group-item">Not liable for business interruption or data loss</li>
+                        <li class="list-group-item">Liability limited to 12 months of fees paid</li>
+                    </ul>
+
+                    <h5 class="d-flex align-items-center text-hospital mt-4">
+                        <i class="fas fa-clipboard-check me-2"></i> Regulatory Compliance
+                    </h5>
+                    <p>While PharmaDesk includes compliance features, you remain responsible for:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Maintaining valid PPB licenses</li>
+                        <li class="list-group-item">Ensuring staff qualifications</li>
+                        <li class="list-group-item">Proper pharmaceutical handling</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Service Changes & Contact -->
+            <div class="card feature-card">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-exchange-alt me-2"></i> Service Changes & Contact
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="d-flex align-items-center text-hospital">
+                                <i class="fas fa-cogs me-2"></i> Modifications
+                            </h5>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2"><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> 30 days
+                                    notice for changes</li>
+                                <li class="mb-2"><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> Immediate
+                                    security updates</li>
+                                <li><i class="fas fa-circle-notch fa-xs me-2 text-hospital"></i> 60 days data export
+                                    after termination</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="d-flex align-items-center text-hospital">
+                                <i class="fas fa-envelope me-2"></i> Contact
+                            </h5>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2"><i class="fas fa-at fa-xs me-2 text-hospital"></i>
+                                    legal@pharmadesk.co.ke</li>
+                                <li class="mb-2"><i class="fas fa-phone fa-xs me-2 text-hospital"></i> +254 115 082 970
+                                </li>
+                                <li><i class="fas fa-map-marker-alt fa-xs me-2 text-hospital"></i> Nairobi, Kenya</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="alert alert-hospital-light mt-3">
+                        <i class="fas fa-handshake me-2 text-hospital"></i> By using PharmaDesk, you acknowledge reading
+                        and agreeing to these Terms of Service.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .alert-hospital-light {
+        background-color: var(--hospital-light);
+        border-left: 4px solid var(--hospital-color);
+    }
+
+    .list-group-item {
+        border-left: 0;
+        border-right: 0;
+        padding-left: 0;
+    }
+</style>
+{% endblock %}

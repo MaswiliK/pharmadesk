@@ -1,0 +1,21 @@
+/* Thermal printer friendly styles */
+body {
+    font-family: 'Courier New', monospace;
+    color: black !important;
+    background: white !important;
+    width: 80mm;
+    margin: 0;
+    padding: 0;
+}
+
+/* Hide unnecessary elements in PDF */
+.no-print {
+    display: none !important;
+}
+
+/* Ensure important elements are visible */
+.payment-method, .total-amount {
+    font-weight: bold;
+    border-top: 2px dashed #000;
+    padding-top: 5px;
+}

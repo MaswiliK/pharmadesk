@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('main.home') }}"><i class="fas fa-home me-1"></i>Home</a>
+</li>
+
+{% if current_user.is_authenticated %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}"><i
+            class="fas fa-tachometer-alt me-1"></i>Dashboard</a>
+</li>
+{% else %}
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('auth.register') }}"><i class="fas fa-user-plus me-1"></i>Register</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt me-1"></i>Login</a>
+</li>
+{% endif %}
+
+<li class="nav-item">
+    <a class="nav-link active" href="{{ url_for('main.about') }}"><i class="fas fa-info-circle me-1"></i>About</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('main.features') }}"><i class="fas fa-star me-1"></i>Features</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-hospital text-white border-0 shadow-lg">
+                <div class="card-body p-4 p-md-5">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h1 class="display-5 fw-bold mb-3"><i class="fas fa-prescription-bottle-alt me-3"></i>About
+                                PharmaDesk</h1>
+                            <p class="lead mb-0 opacity-75">Empowering Kenyan pharmacies with technology built for local
+                                needs</p>
+                        </div>
+                        <div class="col-md-4 d-none d-md-block text-center">
+                            <i class="fas fa-heartbeat fa-5x opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Sections -->
+    <div class="row g-4">
+        <!-- Our Story -->
+        <div class="col-lg-6">
+            <div class="card feature-card h-100">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-book-open me-2"></i> Our Story
+                </div>
+                <div class="card-body">
+                    <p>PharmaDesk was born from a simple observation: Kenyan pharmacies were struggling with outdated
+                        manual systems, endless paperwork, and the constant challenge of managing inventory while
+                        serving their communities.</p>
+                    <p>Founded by a team of Kenyan software developers and healthcare professionals, PharmaDesk emerged
+                        from real conversations with pharmacy owners across Nairobi, Mombasa, Kisumu, and smaller towns
+                        throughout Kenya, with in-depth analysis of the current POS market.</p>
+                    <div class="alert alert-hospital-light mt-3">
+                        <i class="fas fa-lightbulb me-2 text-hospital"></i> We listened to their challenges: tracking
+                        medications, managing expiry dates, processing M-Pesa payments, and maintaining compliance.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Our Mission -->
+        <div class="col-lg-6">
+            <div class="card feature-card h-100">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-bullseye me-2"></i> Our Mission
+                </div>
+                <div class="card-body">
+                    <p class="fw-bold">To empower every Kenyan pharmacy with simple, reliable technology that reduces
+                        administrative burden and enhances patient care.</p>
+                    <p>We believe that whether you run a small chemist in Nakuru or a busy pharmacy in Westlands, you
+                        deserve access to professional-grade tools that work reliably, even with limited internet
+                        connectivity.</p>
+                    <img src="{{ url_for('static', filename='images/pharmaceutical-industry.jpg') }}"
+                        alt="Kenyan Pharmacy" class="img-fluid rounded mt-3">
+                </div>
+            </div>
+        </div>
+
+        <!-- Our Values -->
+        <div class="col-12">
+            <div class="card feature-card">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-heart me-2"></i> Our Values
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-hospital">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5>Simplicity First</h5>
+                                    <p class="text-muted">Technology should make your work easier, not more complicated
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-hospital">
+                                    <i class="fas fa-map-marked-alt fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5>Local Understanding</h5>
+                                    <p class="text-muted">Built for Kenyan pharmacies with M-Pesa integration and local
+                                        regulations</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-hospital">
+                                    <i class="fas fa-shield-alt fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5>Reliability</h5>
+                                    <p class="text-muted">Prioritizing system stability with scheduled maintenance
+                                        notifications</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex">
+                                <div class="me-3 text-hospital">
+                                    <i class="fas fa-coins fa-2x"></i>
+                                </div>
+                                <div>
+                                    <h5>Affordability</h5>
+                                    <p class="text-muted">Quality pharmacy management shouldn't be a luxury</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Who We Serve -->
+        <div class="col-md-6">
+            <div class="card feature-card h-100">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-users me-2"></i> Who We Serve
+                </div>
+                <div class="card-body">
+                    <p>PharmaDesk is designed specifically for small to mid-sized pharmacies across Kenya:</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-store me-3 text-hospital"></i>
+                            <span>Independent community pharmacies</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-hospital me-3 text-hospital"></i>
+                            <span>Hospital pharmacies in Level 4-6 facilities</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-link me-3 text-hospital"></i>
+                            <span>Pharmacy chains with 2-10 locations</span>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-tree me-3 text-hospital"></i>
+                            <span>Rural pharmacies with limited technical support</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Why Choose Us -->
+        <div class="col-md-6">
+            <div class="card feature-card h-100">
+                <div class="card-header bg-hospital text-white">
+                    <i class="fas fa-trophy me-2"></i> Why Choose PharmaDesk?
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-hospital-light">
+                        <i class="fas fa-lightbulb me-2 text-hospital"></i> Built around the workflows of Kenyan
+                        pharmacists
+                    </div>
+                    <p>Unlike generic POS systems, PharmaDesk understands that pharmacies are healthcare providers first
+                        and retailers second.</p>
+                    <hr>
+                    <h5><i class="fas fa-check me-2 text-hospital"></i>Local Payment Methods</h5>
+                    <p class="small text-muted">Full M-Pesa integration and support for other local payment options</p>
+
+                    <h5><i class="fas fa-check me-2 text-hospital"></i>Regulatory Compliance</h5>
+                    <p class="small text-muted">Designed with Pharmacy and Poisons Board requirements in mind</p>
+
+                    <h5><i class="fas fa-check me-2 text-hospital"></i>Connectivity Aware</h5>
+                    <p class="small text-muted">Functions reliably even with intermittent internet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .alert-hospital-light {
+        background-color: var(--hospital-light);
+        border-left: 4px solid var(--hospital-color);
+    }
+
+    .list-group-item {
+        border-left: 0;
+        border-right: 0;
+        padding-left: 0;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link" href="{{ url_for('main.product_list') }}">Product list</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card shadow-sm">
+
+        <h2>{{ 'Edit Product' if product else 'Add Product' }}</h2>
+
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <div class="row g-3">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Product Name</label>
+                        {{ form.name(class="form-control", id="name") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="generic_name" class="form-label">Generic Name</label>
+                        {{ form.generic_name(class="form-control", id="generic_name") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="dosage" class="form-label">Dosage</label>
+                        {{ form.dosage(class="form-control", id="dosage") }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.prescription_required() }}
+                        <label for="prescription_required" class="form-label">Prescription Required</label>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.is_active() }}
+                        <label for="is_active" class="form-label">Active</label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="cost_price" class="form-label">Cost Price</label>
+                        {{ form.cost_price(class="form-control", id="cost_price") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="selling_price" class="form-label">Selling Price</label>
+                        {{ form.selling_price(class="form-control", id="selling_price") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="max_discount" class="form-label">Max Discount</label>
+                        {{ form.max_discount(class="form-control", id="max_discount") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="reorder_level" class="form-label">Reorder Level</label>
+                        {{ form.reorder_level(class="form-control", id="reorder_level") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category_id" class="form-label">Category</label>
+                        {{ form.category_id(class="form-control", id="category_id") }}
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-hospital">
+                        <i class="fas fa-save me-2"></i>Save Product
+                    </button>
+                    <a href="{{ url_for('main.product_list') }}" class="btn btn-outline-hospital">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

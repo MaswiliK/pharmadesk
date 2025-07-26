@@ -1,0 +1,55 @@
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Flask env files
+.env
+*.env
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.pyvenv/
+
+# VS Code settings and extensions
+.settings/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# SQLite or other local DBs (if used)
+*.sqlite3
+*.db
+
+# Backup or temp files
+*.bak
+*.tmp
+*.swp
+
+# Coverage and test outputs
+htmlcov/
+coverage.xml
+*.cover
+*.pyc
+
+# Compiled or packaged files
+*.egg
+*.egg-info/
+dist/
+build/
+
+# PyInstaller
+*.spec
+
+# mypy / pylint / pytest
+.mypy_cache/
+.pytest_cache/
+pylint-report.txt

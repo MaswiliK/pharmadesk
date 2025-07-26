@@ -1,0 +1,450 @@
+{% extends 'admin_base.html' %}
+{% block page_title %}Payment Reconciliation{% endblock %}
+
+{% block header_actions %}
+<div class="d-flex gap-2">
+    <button class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#reconciliationFilters"
+        aria-expanded="false" aria-controls="reconciliationFilters">
+        <i class="bi bi-funnel me-2"></i> Filters
+    </button>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkReconciliation">
+        <i class="bi bi-upload me-2"></i> Bulk Process
+    </button>
+</div>
+{% endblock %}
+
+{% block admin_content %}
+
+{# ------------------------------------------------------------------ #}
+{# FILTERS COLLAPSE #}
+{# We bind elements to query params so page loads w/active filters. #}
+{# ------------------------------------------------------------------ #}
+<div id="reconciliationFilters" class="collapse show mb-4">
+    <div class="card">
+        <form method="get" action="{{ url_for('admin.reconciliation') }}" class="card-body py-3">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="startDate" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="startDate" name="start_date"
+                        value="{{ request.args.get('start_date','') }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="endDate" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="endDate" name="end_date"
+                        value="{{ request.args.get('end_date','') }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="statusFilter" class="form-label">Status</label>
+                    {% set _status = request.args.get('status','pending') %}
+                    <select class="form-select" id="statusFilter" name="status">
+                        <option value="pending" {{ 'selected' if _status=='pending' else '' }}>Pending</option>
+                        <option value="approved" {{ 'selected' if _status=='approved' else '' }}>Approved</option>
+                        <option value="rejected" {{ 'selected' if _status=='rejected' else '' }}>Rejected</option>
+                        <option value="all" {{ 'selected' if _status=='all' else '' }}>All</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="userCodeFilter" class="form-label">User Code</label>
+                    <input type="text" class="form-control" placeholder="Enter user code" id="userCodeFilter"
+                        name="user_code" value="{{ request.args.get('user_code','') }}">
+                </div>
+                <div class="col-md-8 d-flex gap-2 justify-content-end">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i> Apply</button>
+                    <a href="{{ url_for('admin.reconciliation') }}" class="btn btn-outline-secondary"><i
+                            class="bi bi-x-circle me-1"></i> Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# RECONCILIATION TABLE #}
+{# ------------------------------------------------------------------ #}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Receipts for Reconciliation</h5>
+        <div class="text-muted small">
+            {% if receipts %}
+            Showing {{ receipts|length }} receipt(s)
+            {% else %}
+            No receipts found
+            {% endif %}
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="reconciliationTable">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center" style="width:32px;">
+                            <input type="checkbox" id="selectAllRows" class="form-check-input"
+                                title="Select all for bulk">
+                        </th>
+                        <th>Receipt</th>
+                        <th>User</th>
+                        <th>Details</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in receipts %}
+                    {% set s = (r.status or 'pending')|lower %}
+                    {% if s not in ['pending','approved','rejected'] %}{% set s = 'pending' %}{% endif %}
+                    {% set status_class = {
+                    'pending':'warning',
+                    'approved':'success',
+                    'rejected':'danger'
+                    }[s] %}
+                    <tr data-receipt-id="{{ r.id }}" data-status="{{ s }}">
+                        <td class="text-center">
+                            <input type="checkbox" class="form-check-input row-select" value="{{ r.id }}" {% if
+                                s!='pending' %}disabled{% endif %}>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar bg-primary bg-opacity-10 text-primary p-2 rounded-circle me-3">
+                                    <i class="bi bi-receipt"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">#{{ r.id }}</h6>
+                                    <small class="text-muted">{{ r.receipt }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="font-monospace">{{ r.user_code }}</span></td>
+                        <td>
+                            <small class="text-muted d-block"><i class="bi bi-calendar me-1"></i>{{
+                                r.created_at.strftime('%b %d, %Y %H:%M') }}</small>
+                            {% if s=='approved' and r.approved_at %}
+                            <small class="text-success d-block"><i class="bi bi-check2-circle me-1"></i>Approved {{
+                                r.approved_at.strftime('%b %d, %Y %H:%M') }}{% if r.approved_by %} by {{ r.approved_by
+                                }}{% endif %}</small>
+                            {% elif s=='rejected' and r.rejected_at %}
+                            <small class="text-danger d-block"><i class="bi bi-x-circle me-1"></i>Rejected {{
+                                r.rejected_at.strftime('%b %d, %Y %H:%M') }}{% if r.rejected_by %} by {{ r.rejected_by
+                                }}{% endif %}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ status_class }}">{{ s|capitalize }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-sm btn-success btn-approve"
+                                    data-receipt-id="{{ r.id }}"
+                                    data-action-url="{{ url_for('admin.approve_receipt', receipt_id=r.id) }}" {% if
+                                    s!='pending' %}disabled data-bs-toggle="tooltip" data-bs-title="Already {{ s }}" {%
+                                    endif %}>
+                                    <i class="bi bi-check-lg"></i> Approve
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-reject"
+                                    data-receipt-id="{{ r.id }}"
+                                    data-action-url="{{ url_for('admin.reject_receipt', receipt_id=r.id) }}" {% if
+                                    s!='pending' %}disabled data-bs-toggle="tooltip" data-bs-title="Already {{ s }}" {%
+                                    endif %}>
+                                    <i class="bi bi-x-lg"></i> Reject
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-view"
+                                    data-bs-toggle="modal" data-bs-target="#viewReceiptModal"
+                                    data-receipt-id="{{ r.id }}">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="py-4">
+                                <i class="bi bi-receipt fs-1 text-muted"></i>
+                                <h5 class="mt-3 mb-2">No receipts found</h5>
+                                <p class="text-muted">Try adjusting your filters above.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# VIEW RECEIPT MODAL #}
+{# ------------------------------------------------------------------ #}
+<div class="modal fade" id="viewReceiptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Receipt Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="receiptDetailsContent">
+                <!-- Content loaded via AJAX -->
+                <div class="text-center py-4" id="receiptDetailsSpinner">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="approveFromModal">
+                    <i class="bi bi-check-lg me-1"></i> Approve
+                </button>
+                <button type="button" class="btn btn-outline-danger" id="rejectFromModal">
+                    <i class="bi bi-x-lg me-1"></i> Reject
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# BULK RECONCILIATION MODAL #}
+{# Supports: #}
+{# • CSV upload (IDs in first column) #}
+{# • Or process IDs selected in table (no file needed) #}
+{# ------------------------------------------------------------------ #}
+<div class="modal fade" id="bulkReconciliation" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Bulk Process Receipts</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bulkReconciliationForm" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <label class="form-label">Select Action</label>
+                        <select class="form-select" name="bulk_action" id="bulkAction" required>
+                            <option value="">Choose action</option>
+                            <option value="approve">Approve Selected</option>
+                            <option value="reject">Reject Selected</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Upload CSV File (optional)</label>
+                        <input type="file" class="form-control" accept=".csv" name="csv_file" id="bulkCsvFile">
+                        <small class="text-muted">CSV should contain receipt IDs in the first column. If omitted, the
+                            IDs you selected in the table will be used.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="bulkReconciliationForm" class="btn btn-primary">Process</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ------------------------------------------------------------------ #}
+{# SCRIPTS #}
+{# ------------------------------------------------------------------ #}
+<script>
+    (function () {
+        const csrfToken = '{{ csrf_token() }}';
+
+        // --- UTIL --------------------------------------------------------
+        function postJSON(url, payload) {
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify(payload || {})
+            }).then(r => r.json());
+        }
+
+        function showSwal(icon, title, text) {
+            return Swal.fire({ icon, title, text, confirmButtonText: 'OK' });
+        }
+
+        function reloadAfter(delayMs = 0) {
+            setTimeout(() => window.location.reload(), delayMs); // slight delay allows toast close
+        }
+
+        // --- SINGLE APPROVE ---------------------------------------------
+        function processReceipt(url, receiptId, action) {
+            const row = document.querySelector(`tr[data-receipt-id="${receiptId}"]`);
+            if (row) {
+                const status = row.getAttribute('data-status');
+                if (status !== 'pending') {
+                    showSwal('info', 'No Action', 'Receipt already ' + status + '.');
+                    return;
+                }
+            }
+            postJSON(url, {})
+                .then(data => {
+                    if (data.success) {
+                        showSwal('success', 'Success!', data.message || ('Receipt ' + action + 'd.')).then(() => reloadAfter());
+                    } else {
+                        showSwal('error', 'Error!', data.message || 'Something went wrong.');
+                    }
+                })
+                .catch(() => showSwal('error', 'Error!', 'Network or server error.'));
+        }
+
+        // Attach click handlers to approve / reject buttons in table
+        document.querySelectorAll('.btn-approve').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (btn.disabled) return; // already processed
+                const receiptId = btn.dataset.receiptId;
+                const url = btn.dataset.actionUrl;
+                processReceipt(url, receiptId, 'approve');
+            });
+        });
+        document.querySelectorAll('.btn-reject').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (btn.disabled) return;
+                const receiptId = btn.dataset.receiptId;
+                const url = btn.dataset.actionUrl;
+                Swal.fire({
+                    title: 'Confirm Rejection',
+                    text: 'Are you sure you want to reject this receipt?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: 'Yes, reject it'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        processReceipt(url, receiptId, 'reject');
+                    }
+                });
+            });
+        });
+
+        // --- SELECT ALL --------------------------------------------------
+        const selectAllBox = document.getElementById('selectAllRows');
+        if (selectAllBox) {
+            selectAllBox.addEventListener('change', () => {
+                const check = selectAllBox.checked;
+                document.querySelectorAll('#reconciliationTable .row-select:not(:disabled)').forEach(cb => {
+                    cb.checked = check;
+                });
+            });
+        }
+
+        // --- VIEW MODAL --------------------------------------------------
+        const viewModal = document.getElementById('viewReceiptModal');
+        if (viewModal) {
+            viewModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const receiptId = button.getAttribute('data-receipt-id');
+                const body = viewModal.querySelector('#receiptDetailsContent');
+                const spinner = viewModal.querySelector('#receiptDetailsSpinner');
+                if (spinner) spinner.style.display = 'block';
+                body.innerHTML = spinner ? spinner.outerHTML : '<div class="text-center py-4"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+
+                // Load details (GET partial)
+                fetch('{{ url_for("admin.reconciliation") }}?receipt_id=' + receiptId + '&partial=1', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(r => r.text())
+                    .then(html => { body.innerHTML = html; })
+                    .catch(() => { body.innerHTML = '<div class="alert alert-danger">Failed to load receipt details.</div>'; });
+
+                // Wire footer action buttons
+                const approveBtn = viewModal.querySelector('#approveFromModal');
+                const rejectBtn = viewModal.querySelector('#rejectFromModal');
+                const row = document.querySelector(`tr[data-receipt-id="${receiptId}"]`);
+                const status = row ? row.getAttribute('data-status') : 'pending';
+
+                // enable/disable based on status
+                if (status !== 'pending') {
+                    approveBtn.disabled = true;
+                    rejectBtn.disabled = true;
+                    approveBtn.title = 'Already ' + status;
+                    rejectBtn.title = 'Already ' + status;
+                } else {
+                    approveBtn.disabled = false;
+                    rejectBtn.disabled = false;
+                }
+
+                approveBtn.onclick = function () {
+                    processReceipt('{{ url_for("admin.approve_receipt", receipt_id=0) }}'.replace('0', receiptId), receiptId, 'approve');
+                    const m = bootstrap.Modal.getInstance(viewModal); m && m.hide();
+                };
+                rejectBtn.onclick = function () {
+                    Swal.fire({
+                        title: 'Confirm Rejection',
+                        text: 'Are you sure you want to reject this receipt?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        confirmButtonText: 'Yes, reject it'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            processReceipt('{{ url_for("admin.reject_receipt", receipt_id=0) }}'.replace('0', receiptId), receiptId, 'reject');
+                            const m = bootstrap.Modal.getInstance(viewModal); m && m.hide();
+                        }
+                    });
+                };
+            });
+        }
+
+        // --- BULK MODAL SUBMIT ------------------------------------------
+        const bulkForm = document.getElementById('bulkReconciliationForm');
+        if (bulkForm) {
+            bulkForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const actionSel = bulkForm.querySelector('#bulkAction');
+                const csvInput = bulkForm.querySelector('#bulkCsvFile');
+                const action = actionSel.value;
+                if (!action) {
+                    showSwal('warning', 'Missing Action', 'Please choose Approve or Reject.');
+                    return;
+                }
+
+                // If file chosen, submit via FormData
+                if (csvInput.files && csvInput.files.length) {
+                    const fd = new FormData(bulkForm);
+                    fetch('{{ url_for("admin.bulk_reconciliation") }}', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrfToken },
+                        body: fd
+                    })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                showSwal('success', 'Bulk Complete', data.message || 'Bulk processed.').then(() => reloadAfter());
+                            } else {
+                                showSwal('error', 'Bulk Error', data.message || 'Bulk processing failed.');
+                            }
+                        })
+                        .catch(() => showSwal('error', 'Bulk Error', 'Upload failed.'));
+                    return;
+                }
+
+                // Else gather selected IDs from table
+                const ids = Array.from(document.querySelectorAll('#reconciliationTable .row-select:checked')).map(cb => parseInt(cb.value));
+                if (!ids.length) {
+                    showSwal('info', 'No IDs Selected', 'Select pending receipts in the table or upload a CSV.');
+                    return;
+                }
+                postJSON('{{ url_for("admin.bulk_reconciliation") }}', { action, receipt_ids: ids })
+                    .then(data => {
+                        if (data.success) {
+                            showSwal('success', 'Bulk Complete', data.message || 'Bulk processed.').then(() => reloadAfter());
+                        } else {
+                            showSwal('error', 'Bulk Error', data.message || 'Bulk processing failed.');
+                        }
+                    })
+                    .catch(() => showSwal('error', 'Bulk Error', 'Server error.'));
+            });
+        }
+
+        // --- INIT BOOTSTRAP TOOLTIPS ------------------------------------
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    })();
+</script>
+
+{% endblock %}

@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}Sales Processing{% endblock %}
+{% set active = 'sales' %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'products' }}"
+        href="{{ url_for('main.inventory_summary') }}">Inventory</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'sales' }}" href="{{ url_for('main.sales_processing') }}">Sales</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="page-header text-center">
+                <h1>Sales Processing</h1>
+                <p class="lead">Manage transactions and customer purchases</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div
+                    class="card-header bg-hospital text-white fw-semibold d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fas fa-shopping-basket me-2"></i>Current Sale
+                    </div>
+                    <span id="cartCounter" class="badge bg-danger rounded-pill fs-6">
+                        {{ session['cart']|length if 'cart' in session else 0 }}
+                    </span>
+                </div>
+
+                <div class="card-body">
+                    <div id="cartFeedback" class="my-2"></div>
+
+                    <div class="row g-3 align-items-end">
+                        <!-- Main Form Column -->
+                        <div class="col-12 col-lg-9">
+                            <form id="addToCartForm" method="POST" action="{{ url_for('main.sales_processing') }}"
+                                novalidate>
+                                {{ sale_form.hidden_tag() }}
+
+                                <div class="row g-3">
+                                    <!-- Product Search -->
+                                    <div class="col-12 col-md-8">
+                                        <div class="form-floating position-relative">
+                                            <input type="text" id="productSearch" class="form-control"
+                                                placeholder="Search products..." autocomplete="off"
+                                                data-url="{{ url_for('main.search_products') }}">
+                                            <label for="productSearch">Search Products</label>
+                                            <input type="hidden" id="product" name="product">
+                                            <div id="searchResults" class="list-group position-absolute w-100 shadow"
+                                                style="z-index: 1000; max-height: 250px; overflow-y: auto; display: none;">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quantity Field -->
+                                    <div class="col-6 col-md-2">
+                                        <div class="form-floating">
+                                            {{ sale_form.quantity(class="form-control", min="1", style="height:
+                                            calc(3.5rem + 2px)") }}
+                                            <label for="quantity">Quantity</label>
+                                            {% for error in sale_form.quantity.errors %}
+                                            <small class="text-danger">{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Add to Cart Button -->
+                                    <div class="col-6 col-md-2 d-flex">
+                                        <button type="submit" name="add_to_cart"
+                                            class="btn btn-primary w-100 d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-cart-plus me-2"></i> Add
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Clear Cart Column -->
+                        <div class="col-12 col-lg-3 mt-3 mt-lg-0">
+                            <form id="clearCartForm" action="{{ url_for('main.clear_cart') }}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit"
+                                    class="btn btn-danger w-100 py-3 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-trash me-2"></i> Clear Cart
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div id="cartContainer" class="mt-4">
+                        {% include 'sales/_cart_partial.html' %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 d-flex flex-column gap-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-hospital text-white fw-semibold py-2 py-md-3">
+                    <i class="fas fa-credit-card me-2"></i>Process Payment
+                </div>
+                <div class="card-body p-2 p-md-3">
+                    <form id="paymentForm" method="POST" action="{{ url_for('main.sales_processing') }}">
+                        {{ payment_form.hidden_tag() }}
+
+                        <!-- Amount Due Field -->
+                        <div class="mb-3">
+                            {{ payment_form.amount_due.label(class="form-label mb-1") }}
+                            <div class="input-group">
+                                {{ payment_form.amount_due(
+                                class="form-control",
+                                id="amountDueField",
+                                value=(payment_form.amount_due.data if payment_form.amount_due.data is not none else
+                                total_amount)
+                                ) }}
+                                <button class="btn btn-outline-secondary" type="button" id="resetAmountBtn"
+                                    aria-label="Reset amount">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-1">You may adjust this amount to apply discounts</small>
+                            {% for error in payment_form.amount_due.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                            <div id="amountDueValidation" class="text-danger small d-none mt-1"></div>
+                            <input type="hidden" id="originalTotal" value="{{ total_amount }}">
+                        </div>
+
+                        <!-- Payment Method Field -->
+                        <div class="mb-3">
+                            {{ payment_form.payment_method.label(class="form-label mb-1") }}
+                            {{ payment_form.payment_method(class="form-select") }}
+                            {% for error in payment_form.payment_method.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Customer Name Field -->
+                        <div class="mb-3">
+                            {{ payment_form.customer_name.label(class="form-label mb-1") }}
+                            {{ payment_form.customer_name(
+                            class="form-control",
+                            required=requires_prescription,
+                            placeholder="Required for prescription items" if requires_prescription else "Optional"
+                            ) }}
+                            {% for error in payment_form.customer_name.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" name="process_payment" class="btn btn-hospital w-100 py-2 mt-2" {% if not
+                            session.get('cart') %}disabled{% endif %}>
+                            <i class="fas fa-check-circle me-2"></i>Confirm Payment
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-hospital text-white d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-history me-2"></i>Recent Transactions</span>
+                    <a href="{{ url_for('main.sales_history') }}" class="btn btn-light btn-sm">
+                        <i class="fas fa-list me-1"></i>View All
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="list-group small">
+                        {% if recent_transactions %}
+                        {% for transaction in recent_transactions %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong class="d-block">{{ transaction.product.name }}</strong>
+                                <small class="text-muted">
+                                    {{ transaction.sale_time | utc_to_eat | format_date('%b %d, %I:%M %p') }} •
+                                    {{ transaction.payment_method.value }} •
+                                    Qty: {{ transaction.quantity }}
+                                </small>
+                            </div>
+                            <span class="badge bg-hospital rounded-pill">{{ transaction.total_price|currency }}</span>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="text-center py-3 text-muted">No recent transactions</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-hospital text-white">
+                <h5 class="modal-title">Confirm Payment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to process this payment of {{ total_amount|currency }}?</p>
+                <p class="small text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-hospital" id="confirmPayment">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Handle payment confirmation
+    document.addEventListener('DOMContentLoaded', function () {
+        const paymentForm = document.querySelector("form[action='{{ url_for('main.sales_processing') }}']");
+        const confirmBtn = document.getElementById('confirmPayment');
+
+        if (paymentForm && confirmBtn) {
+            paymentForm.addEventListener('submit', function (e) {
+                if (e.submitter && e.submitter.name === 'process_payment') {
+                    e.preventDefault();
+                    const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+                    modal.show();
+
+                    confirmBtn.addEventListener('click', function () {
+                        paymentForm.submit();
+                    });
+                }
+            });
+        }
+
+        // Update cart counter dynamically
+        const cartCounter = document.getElementById('cartCounter');
+        if (cartCounter) {
+            // This would be enhanced with actual WebSocket updates in production
+            setInterval(() => {
+                fetch("{{ url_for('main.get_cart_count') }}")
+                    .then(response => response.json())
+                    .then(data => {
+                        cartCounter.textContent = data.count;
+                    });
+            }, 5000);
+        }
+    });
+</script>
+{% endblock %}

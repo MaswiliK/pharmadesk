@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Inventory Overview{% endblock %}
+{% set active = 'inventory' %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'inventory' }}"
+        href="{{ url_for('main.inventory_summary') }}">Inventory</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'sales' }}" href="{{ url_for('main.sales_processing') }}">Sales</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'expenses' }}" href="{{ url_for('main.expenses') }}">Expenses</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'reports' }}"
+        href="{{ url_for('main.analytics_dashboard') }}">Reports</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="page-header text-center">
+            <h1>Inventory Overview</h1>
+            <p class="lead">Monitor products, batches, and alerts at a glance</p>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Products Summary Card -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-hospital text-white">
+                <i class="fas fa-box-open"></i> Products
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h5 class="card-title">Total Products</h5>
+                    <span class="badge bg-hospital">{{ total_products }}</span>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">{{ active_products }} active</small>
+                </div>
+                <a href="{{ url_for('main.product_list') }}" class="btn btn-outline-hospital mt-3">Manage Products</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batches Summary Card -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-hospital text-white">
+                <i class="fas fa-layer-group"></i> Batches
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h5 class="card-title">Tracked Batches</h5>
+                    <span class="badge bg-hospital">{{ total_batches }}</span>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">{{ expired_batches }}
+                        expired</small>
+                </div>
+                <a href="{{ url_for('main.batch_list') }}" class="btn btn-outline-hospital mt-3">View Batches</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts Card (Low Stock + Expiry) -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <i class="fas fa-bell-exclamation"></i> Alerts
+            </div>
+            <div class="card-body">
+
+                {% if low_stock_count > 0 %}
+                <h5 class="card-title mb-3">Low Stock (≤10)</h5>
+                <ul class="list-group mb-3">
+                    {% for product in low_stock_products %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ product.name }}
+                        <span class="badge bg-danger">{{ product.quantity }} left</span>
+                    </li>
+                    {% endfor %}
+                    {% if low_stock_count > low_stock_products|length %}
+                    <li class="list-group-item text-center">
+                        +{{ low_stock_count - low_stock_products|length }} more...
+                    </li>
+                    {% endif %}
+                </ul>
+                {% endif %}
+
+                {% if expiring_soon_count > 0 %}
+                <h5 class="card-title">Expiring Soon (≤30 days)</h5>
+                <canvas id="expiryChart" height="150"></canvas>
+                {% else %}
+                <div class="alert alert-success mt-3">
+                    <i class="fas fa-check-circle me-2"></i>
+                    No batches expiring soon
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if expiry_months and expiry_counts %}
+    <!-- Chart Script -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const expiryCtx = document.getElementById('expiryChart').getContext('2d');
+        const expiryChart = new Chart(expiryCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ expiry_months| tojson }},
+        datasets: [{
+            label: 'Expiring Batches',
+            data: {{ expiry_counts| tojson }},
+            backgroundColor: '#dc3545'
+            }]
+        },
+        options: {
+            responsive: true,
+                plugins: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                        text: 'Expiring Items (Monthly)'
+                }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+    </script>
+    {% endif %}
+    {% endblock %}

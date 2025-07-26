@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% set active = 'inventory' %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'inventory' }}"
+        href="{{ url_for('main.inventory_summary') }}">Inventory</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <form method="get" action="{{ url_for('main.batch_list') }}">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-9">
+                        <input type="text" class="form-control" name="search"
+                            placeholder="Search by product name or generic name..." value="{{ search }}">
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-hospital w-100">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-hospital text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-boxes me-2"></i>
+                Batches
+            </h5>
+            <a href="{{ url_for('main.add_batch') }}" class="btn btn-light">
+                <i class="fas fa-plus-circle me-2"></i>Add Batch
+            </a>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Batch #</th>
+                            <th>Manufactured</th>
+                            <th>Expires</th>
+                            <th>Quantity</th>
+                            <th>Days Left</th>
+                            <th>Supplier</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for batch in batches.items %}
+                        <tr
+                            class="{% if batch.expiry_date < current_date %}table-danger{% elif batch.days_left < 30 %}table-warning{% endif %}">
+                            <td>{{ batch.product.name }}</td>
+                            <td>{{ batch.batch_number }}</td>
+                            <td>{{ batch.manufacture_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ batch.expiry_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ batch.stock_lvl }} / {{ batch.order_quantity }}</td>
+                            <td>{{ batch.days_left }} days</td>
+                            <td>{{ batch.supplier or '-' }}</td>
+                            <td class="text-end">
+                                <div class="btn-group">
+                                    <a href="{{ url_for('main.edit_batch', batch_id=batch.id) }}"
+                                        class="btn btn-sm btn-hospital">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal{{ batch.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Delete Modal for each batch -->
+                                <div class="modal fade" id="deleteModal{{ batch.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete batch "{{ batch.batch_number }}" of
+                                                    {{ batch.product.name }}? This action cannot be undone.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('main.delete_batch', batch_id=batch.id) }}"
+                                                    method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if batches.pages > 1 %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if batches.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.batch_list', page=batches.prev_num) }}">
+                            Previous
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in batches.iter_pages() %}
+                    {% if page_num %}
+                    <li class="page-item {% if page_num == batches.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('main.batch_list', page=page_num) }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if batches.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('main.batch_list', page=batches.next_num) }}">
+                            Next
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

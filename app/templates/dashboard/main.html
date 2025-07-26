@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% set active = 'dashboard' %}
+
+{% block navbar_items %}
+<li class="nav-item mx-1">
+  <a class="nav-link" href="{{ url_for('main.home') }}">Home</a>
+</li>
+<li class="nav-item mx-1">
+  <a class="nav-link {{ 'active' if active == 'dashboard' }} " href="{{ url_for('main.dashboard') }}">
+    Dashboard
+  </a>
+</li>
+<li class="nav-item dropdown ms-lg-2">
+  <a class="nav-link dropdown-toggle d-flex align-items-center py-2" id="userDropdown" role="button"
+    data-bs-toggle="dropdown">
+    <i class="fas fa-user-circle me-2 me-lg-1 fs-5"></i>
+    <span class="d-none d-lg-inline"> {{ current_user.user_code }}</span>
+  </a>
+  <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+    <li>
+      <hr class="dropdown-divider mx-3">
+    </li>
+    <li>
+      <a class="dropdown-item d-flex align-items-center px-3 py-2" href="{{ url_for('main.profile') }}">
+        <i class="fas fa-user fa-sm me-2"></i>Profile
+      </a>
+    </li>
+    <li>
+      <a class="dropdown-item d-flex align-items-center px-3 py-2" href="{{ url_for('main.settings') }}">
+        <i class="fas fa-cog fa-sm me-2"></i>Settings
+      </a>
+    </li>
+    <li>
+      <hr class="dropdown-divider mx-3">
+    </li>
+    <li>
+      <a class="dropdown-item d-flex align-items-center px-3 py-2 text-danger" href="{{ url_for('auth.logout') }}">
+        <i class="fas fa-sign-out-alt fa-sm me-2"></i>Logout
+      </a>
+    </li>
+  </ul>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <!-- Enhanced Dashboard Header -->
+  <div class="col-12">
+    <div class="page-header">
+      <div class="header-container">
+        <div class="header-icon">
+          <i class="fas fa-prescription-bottle-alt"></i>
+        </div>
+        <div class="header-content">
+          <h1 class="hospital-title">
+            PharmaDesk Dashboard
+            <span class="badge bg-hospital text-white">LIVE</span>
+          </h1>
+          <p class="hospital-subtitle">
+            <span class="d-none d-md-inline">Your one-stop hub for managing inventory, sales with M-Pesa integration and
+              more</span>
+            <span class="d-md-none">Inventory • Sales • Expenses</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Inventory Management Card -->
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header bg-hospital text-white">
+        <i class="fas fa-pills"></i> Inventory
+      </div>
+      <div class="card-body">
+        <p>Manage stock in/out, track low stock items, and keep an eye on drug expiry dates.</p>
+        <a href="{{ url_for('main.inventory_summary') }}" class="btn btn-outline-hospital">Manage Inventory</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sales & Cart Card -->
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header bg-hospital text-white">
+        <i class="fas fa-shopping-cart"></i> Sales & Cart
+      </div>
+      <div class="card-body">
+        <p>Quickly add items to the cart and process sales using various payment methods.</p>
+        <a href="{{ url_for('main.sales_processing') }}" class="btn btn-outline-hospital">View Sales</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expense Tracking Card -->
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header bg-hospital text-white">
+        <i class="fas fa-chart-line"></i> Expenses
+      </div>
+      <div class="card-body">
+        <p>Record and analyze business expenses with beautiful chart displays.</p>
+        <a href="{{ url_for('main.expenses') }}" class="btn btn-outline-hospital">Track Expenses</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Reports Card -->
+  <div class="col-md-6 col-lg-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header bg-hospital text-white">
+        <i class="fas fa-file-alt"></i> Reports
+      </div>
+      <div class="card-body">
+        <p>Generate detailed reports on sales, inventory movement, and overall performance.</p>
+        <a href="{{ url_for('main.analytics_dashboard') }}" class="btn btn-outline-hospital">Generate Reports</a>
+      </div>
+    </div>
+  </div>
+
+  {% endblock %}

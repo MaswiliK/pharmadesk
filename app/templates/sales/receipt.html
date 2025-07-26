@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% block title %}Sales Receipt #{{ sale.id }}{% endblock %}
+{% set active = 'sales' %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'sales' }}" href="{{ url_for('main.sales_processing') }}">Sales</a>
+</li>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .receipt-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        background: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+
+    .transaction-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .payment-method {
+        background: #e8f5e9;
+        color: #2e7d32;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        display: inline-block;
+    }
+
+    .receipt-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin-bottom: 1rem;
+    }
+
+    .pharmacy-name {
+        color: #2a5a78;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .receipt-table {
+        border-collapse: separate;
+        border-spacing: 0;
+        background: white;
+    }
+
+    .receipt-table thead th {
+        background: #2a5a78;
+        color: white;
+        border: none;
+        padding: 1rem;
+    }
+
+    .receipt-table tbody td {
+        border-bottom: 1px solid #dee2e6;
+        padding: 1rem;
+    }
+
+    .payment-badge {
+        background: #28a74520;
+        color: #28a745;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.9em;
+    }
+
+    .receipt-footer {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+    }
+
+    .print-only {
+        display: none;
+    }
+
+    @media print {
+        .receipt-container {
+            box-shadow: none;
+            border-radius: 0;
+            padding: 0;
+        }
+
+        .receipt-logo {
+            width: 80px !important;
+            height: 80px !important;
+            object-fit: cover;
+        }
+
+
+        .no-print {
+            display: none !important;
+        }
+
+        .print-only {
+            display: block;
+        }
+
+        .receipt-header,
+        .receipt-footer {
+            background: transparent;
+            border: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="receipt-container">
+    <div class="text-center mb-4">
+        <img src="{{ url_for('static', filename='images/logo-pharmaDesk.png') }}" class="receipt-logo"
+            alt="PharmaDesk Logo" style="width: 180px; height: 180px; border-radius: 50%; object-fit: cover;">
+        <h2 class="pharmacy-name">{{ current_user.pharmacy.name }}</h2>
+        <h5>Sales Receipt</h5>
+    </div>
+
+    <div class="transaction-info">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <p class="mb-1"><strong>Receipt #:</strong> {{ transaction_id_display }}</p>
+                <p class="mb-1"><strong>Date:</strong> {{ transaction_datetime | utc_to_eat | format_date('%Y-%m-%d
+                    %H:%M') }}</p>
+                <p class="mb-0"><strong>Customer:</strong> {{ customer_name }}</p>
+            </div>
+            <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                <span class="payment-badge">{{ payment_method_value }}</span>
+                <p class="mt-2 mb-0"><strong>Served by:</strong> {{ current_user.full_name }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="receipt-items">
+        <table class="table receipt-table">
+            <thead>
+                <tr>
+                    <th>Medication</th>
+                    <th>Dosage</th>
+                    <th>Qty</th>
+                    <th class="text-end">Unit Price</th>
+                    <th class="text-end">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item_sale in sales_items %}
+                <tr>
+                    <td>{{ item_sale.product.name }}</td>
+                    <td>{{ item_sale.product.dosage }}</td>
+                    <td>{{ item_sale.quantity }}</td>
+                    <td class="text-end">{{ item_sale.unit_price|currency }}</td>
+                    <td class="text-end">{{ item_sale.total_price|currency }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="receipt-footer">
+        <div class="row">
+            <div class="col-md-8">
+                <h6 class="mb-3">Important Information:</h6>
+                <ul class="list-unstyled small">
+                    <li>✓ Store medications at room temperature</li>
+                    <li>✓ Follow prescribed dosage instructions</li>
+                    <li>✓ Consult pharmacist for any questions</li>
+                </ul>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <div class="mb-0">
+                    <span class="me-2">Total:</span>
+                    <strong>{{ total|currency }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 text-center no-print">
+        <button onclick="printReceipt()" class="btn btn-hospital">
+            <i class="fas fa-print me-2"></i>Print Receipt
+        </button>
+    </div>
+
+    <div class="print-only mt-4 small text-muted text-center">
+        <p class="mb-1">Licensed Pharmacy | VAT No: PHAR-{{ transaction_id_display }}-KEN</p>
+        <p class="mb-0">Valid prescription required for RX medications</p>
+    </div>
+</div>
+
+<script>
+    function printReceipt() {
+        const printWindow = window.open('', '_blank');
+        const receiptContent = document.querySelector('.receipt-container').outerHTML;
+
+        printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Receipt #{{ transaction_id_display }}</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 20px;
+                    -webkit-print-color-adjust: exact !important;
+                }
+                .payment-badge {
+                    background: #28a74520 !important;
+                    color: #28a745 !important;
+                }
+                @media print {
+                    @page { margin: 0; size: auto; }
+                    body { margin: 1cm; }
+                }
+            </style>
+        </head>
+        <body onload="window.print(); setTimeout(() => window.close(), 500)">
+            ${receiptContent}
+        </body>
+        </html>
+    `);
+
+        printWindow.document.close();
+    }
+</script>
+{% endblock %}

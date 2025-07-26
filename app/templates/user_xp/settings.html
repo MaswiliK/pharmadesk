@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% set active = 'settings' %}
+
+
+{% block navbar_items %}
+<li class="nav-item mx-1">
+    <a class="nav-link" href="{{ url_for('main.home') }}">Home</a>
+</li>
+<li class="nav-item mx-1">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }} " href="{{ url_for('main.dashboard') }}">
+        Dashboard
+    </a>
+</li>
+<li class="nav-item mx-1">
+    <a class="nav-link {{ 'active' if active == 'settings' }} " href="{{ url_for('main.settings') }}">
+        Settings
+    </a>
+</li>
+{%endblock%}
+
+{% block content %}
+<!-- Settings Template -->
+<div class="card border-0 shadow-sm mb-4 animate__animated animate__fadeIn">
+    <div class="card-header bg-hospital text-white">
+        <i class="fas fa-rocket me-2"></i> Exciting Features Coming Soon!
+    </div>
+    <div class="card-body">
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            <!-- Feature 1 -->
+            <div class="col">
+                <div class="h-100 p-3 border-start border-4 border-hospital">
+                    <h5 class="d-flex align-items-center">
+                        <i class="fas fa-palette me-2 text-hospital"></i> Interface Preferences
+                    </h5>
+                    <p class="small text-muted mb-0">Customize themes and display options</p>
+                </div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="col">
+                <div class="h-100 p-3 border-start border-4 border-hospital">
+                    <h5 class="d-flex align-items-center">
+                        <i class="fas fa-mobile-alt me-2 text-hospital"></i> M-Pesa STK Push
+                    </h5>
+                    <p class="small text-muted mb-0">Direct payment integration at checkout</p>
+                </div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="col">
+                <div class="h-100 p-3 border-start border-4 border-hospital">
+                    <h5 class="d-flex align-items-center">
+                        <i class="fas fa-chart-line me-2 text-hospital"></i> Sales Forecasting
+                    </h5>
+                    <p class="small text-muted mb-0">Predictive analytics for better planning</p>
+                </div>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="col">
+                <div class="h-100 p-3 border-start border-4 border-hospital">
+                    <h5 class="d-flex align-items-center">
+                        <i class="fas fa-boxes me-2 text-hospital"></i> Smart Restocking
+                    </h5>
+                    <p class="small text-muted mb-0">Automated inventory suggestions</p>
+                </div>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="col">
+                <div class="h-100 p-3 border-start border-4 border-hospital">
+                    <h5 class="d-flex align-items-center">
+                        <i class="fas fa-bell me-2 text-hospital"></i> Daily Sales Reports
+                    </h5>
+                    <p class="small text-muted mb-0">Automated end-of-day notifications</p>
+                </div>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="col">
+                <div class="h-100 p-3 border-start border-4 border-hospital">
+                    <h5 class="d-flex align-items-center">
+                        <i class="fas fa-star me-2 text-hospital"></i> Loyalty Program
+                    </h5>
+                    <p class="small text-muted mb-0">Reward your regular customers</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-hospital-light mt-4">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-clock fa-2x me-3 text-hospital"></i>
+                <div>
+                    <h5 class="mb-1">Under Development</h5>
+                    <p class="small mb-0">We're working hard to bring you these features soon!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .alert-hospital-light {
+        background-color: var(--hospital-light);
+        border-left: 4px solid var(--hospital-color);
+    }
+
+    .border-hospital {
+        border-color: var(--hospital-color) !important;
+    }
+</style>
+{% endblock %}

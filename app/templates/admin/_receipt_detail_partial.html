@@ -1,0 +1,71 @@
+<div class="receipt-detail">
+    <div class="mb-3">
+        <h6 class="fw-bold">Receipt #{{ receipt.id }}</h6>
+        <p class="text-muted small mb-0">
+            <i class="bi bi-receipt me-1"></i>{{ receipt.receipt }}
+        </p>
+    </div>
+
+    <dl class="row">
+        <dt class="col-sm-4">User Code:</dt>
+        <dd class="col-sm-8">{{ receipt.user_code }}</dd>
+
+        {% if user %}
+        <dt class="col-sm-4">User Name:</dt>
+        <dd class="col-sm-8">{{ user.full_name }}</dd>
+        <dt class="col-sm-4">User Phone:</dt>
+        <dd class="col-sm-8">{{ user.phone }}</dd>
+        {% endif %}
+
+        <dt class="col-sm-4">Created:</dt>
+        <dd class="col-sm-8">
+            {{ receipt.created_at.strftime('%b %d, %Y %H:%M') if receipt.created_at else 'N/A' }}
+        </dd>
+
+        <dt class="col-sm-4">Status:</dt>
+        <dd class="col-sm-8">
+            {% if receipt.status == 'approved' %}
+            <span class="badge bg-success">Approved</span>
+            {% elif receipt.status == 'rejected' %}
+            <span class="badge bg-danger">Rejected</span>
+            {% else %}
+            <span class="badge bg-warning text-dark">Pending</span>
+            {% endif %}
+        </dd>
+
+        {% if receipt.status == 'approved' %}
+        <dt class="col-sm-4">Approved At:</dt>
+        <dd class="col-sm-8">{{ receipt.approved_at.strftime('%b %d, %Y %H:%M') if receipt.approved_at else '' }}</dd>
+        <dt class="col-sm-4">Approved By:</dt>
+        <dd class="col-sm-8">{{ receipt.approved_by or '' }}</dd>
+        {% elif receipt.status == 'rejected' %}
+        <dt class="col-sm-4">Rejected At:</dt>
+        <dd class="col-sm-8">{{ receipt.rejected_at.strftime('%b %d, %Y %H:%M') if receipt.rejected_at else '' }}</dd>
+        <dt class="col-sm-4">Rejected By:</dt>
+        <dd class="col-sm-8">{{ receipt.rejected_by or '' }}</dd>
+        {% endif %}
+
+        {% if user and user.next_payment_due %}
+        <dt class="col-sm-4">Next Due:</dt>
+        <dd class="col-sm-8">{{ user.next_payment_due.strftime('%b %d, %Y') }}</dd>
+        {% endif %}
+    </dl>
+
+    <hr>
+
+    <div class="d-flex gap-2">
+        {% if receipt.status == 'pending' %}
+        <button class="btn btn-success btn-sm"
+            onclick="processReceipt('{{ url_for('admin.approve_receipt', receipt_id=receipt.id) }}')">
+            <i class="bi bi-check-lg"></i> Approve
+        </button>
+        <button class="btn btn-outline-danger btn-sm"
+            onclick="confirmReject('{{ url_for('admin.reject_receipt', receipt_id=receipt.id) }}')">
+            <i class="bi bi-x-lg"></i> Reject
+        </button>
+        {% else %}
+        <button class="btn btn-secondary btn-sm" disabled>{{ receipt.status|capitalize }}</button>
+        {% endif %}
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+    </div>
+</div>

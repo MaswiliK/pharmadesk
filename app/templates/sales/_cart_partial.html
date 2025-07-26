@@ -1,0 +1,56 @@
+<input type="hidden" id="cartCountHidden" value="{{ session['cart']|length if 'cart' in session else 0 }}">
+<input type="hidden" id="requiresPrescription" value="{{ 'true' if requires_prescription else 'false' }}">
+
+<div class="table-responsive mt-3">
+    <table class="table table-striped align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Item</th>
+                <th class="text-end">Qty</th>
+                <th class="text-end">Unit Price</th>
+                <th class="text-end">Total</th>
+                <th class="text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set cart_items = current_sale_items %}
+            {% if cart_items %}
+            {% for item in cart_items %}
+            <tr data-product-id="{{ item.product_id }}">
+                <td>
+                    <div class="d-flex align-items-center">
+                        <span class="fw-medium">{{ item.product_name }}</span>
+                        {% if item.requires_prescription %}
+                        <span class="badge bg-warning text-dark ms-2">Rx</span>
+                        {% endif %}
+                    </div>
+                    {% if item.requires_prescription %}
+                    <small class="text-muted d-block">Requires prescription</small>
+                    {% endif %}
+                </td>
+                <td class="text-end">{{ item.quantity }}</td>
+                <td class="text-end">{{ item.unit_price|currency }}</td>
+                <td class="text-end fw-bold">{{ item.total_price|currency }}</td>
+                <td class="text-center">
+                    <form method="POST" action="{{ url_for('main.remove_from_cart', product_id=item.product_id) }}"
+                        class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-cart-item"
+                            aria-label="Remove item" data-bs-toggle="tooltip" title="Remove item">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center py-4 text-muted">
+                    <i class="fas fa-shopping-cart fa-2x mb-2"></i><br>
+                    No items in current sale
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>

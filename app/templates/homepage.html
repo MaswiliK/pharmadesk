@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PharmaPOS - Modern Pharmacy Management</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --hospital-color: #1a6d8c;
+            --hospital-dark: #145369;
+            --hospital-mid: #2582a3;
+            --hospital-light: #f0f8fb;
+            --hospital-bg: #f8f9fa;
+        }
+
+        body {
+            background-color: var(--hospital-bg);
+        }
+
+        .bg-hospital {
+            background-color: var(--hospital-color) !important;
+        }
+
+        .btn-hospital {
+            background-color: var(--hospital-color);
+            color: white;
+            border-radius: 8px;
+            padding: 12px 30px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-hospital:hover {
+            background-color: var(--hospital-dark);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline-hospital {
+            border: 2px solid var(--hospital-mid);
+            color: var(--hospital-dark);
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-hospital:hover {
+            background-color: var(--hospital-mid);
+            color: white;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+        }
+
+        .dropdown-menu {
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero-badge {
+            background: rgba(255, 255, 255, 0.15);
+            color: white !important;
+        }
+
+        .kenya-badge {
+            background: #006600;
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='images/site.webmanifest') }}">
+    <!-- Structured Data: SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "@id": "https://yourdomain.com#software",
+    "name": "Pharmacy POS Software",
+    "url": "https://yourdomain.com",
+    "image": "https://yourdomain.com/images/pharmacy-pos-dashboard.png",
+    "description": "Pharmacy POS software for Kenya with real-time inventory tracking, sales processing, analytics dashboard, and M-Pesa integration.",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Web-based, iOS, Android",
+    "featureList": [
+        "Real-time inventory management",
+        "Expiration date alerts",
+        "Sales processing and analytics",
+        "M-Pesa payment integration",
+        "Profit analysis dashboard",
+        "Multi-location support",
+        "Kenya Pharmacy Board compliance",
+        "Offline mode for rural areas"
+    ],
+    "author": {
+        "@type": "Organization",
+        "name": "Pharmacy POS",
+        "url": "https://yourdomain.com"
+    },
+    "offers": {
+        "@type": "Offer",
+        "url": "https://yourdomain.com/pricing",
+        "priceCurrency": "KES",
+        "price": "8000",
+        "priceValidUntil": "2025-12-31",
+        "availability": "https://schema.org/InStock",
+        "description": "Flexible pricing plans starting from KES 8,000/month for Kenya pharmacies"
+    }
+    }
+    </script>
+
+    <!-- Structured Data: Organization -->
+    <script type="application/ld+json">
+    {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": "https://yourdomain.com#organization",
+    "name": "Pharmacy POS",
+    "url": "https://yourdomain.com",
+    "logo": "https://yourdomain.com/logo.png",
+    "image": "https://yourdomain.com/logo.png",
+    "description": "Pharmacy POS software provider specializing in inventory, sales, and analytics solutions for Kenya pharmacies.",
+    "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+254-700-123-456",
+        "contactType": "Customer Support",
+        "areaServed": "KE",
+        "availableLanguage": ["English", "Swahili"]
+    },
+    "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Moi Avenue",
+        "addressLocality": "Nairobi",
+        "addressRegion": "Nairobi",
+        "postalCode": "00100",
+        "addressCountry": "KE"
+    },
+    "sameAs": [
+        "https://facebook.com/yourpage",
+        "https://linkedin.com/company/yourcompany"
+    ]
+    }
+    </script>
+</head>
+
+<body class="d-flex flex-column h-100">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-hospital py-3">
+        <div class="container-fluid px-lg-5">
+            <a class="navbar-brand d-flex align-items-center me-auto">
+                <i class="fas fa-prescription-bottle-alt me-2 fs-3"></i>
+                <h2 class="mb-0">PharmaDesk POS</h2>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-lg-center">
+                    <li class="nav-item mx-2">
+                        <a class="nav-link" href="{{ url_for('main.support') }}"><i
+                                class="fas fa-headset me-2"></i>Support</a>
+                    </li>
+                    <li class="nav-item dropdown mx-2">
+                        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i> Account
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.login') }}"><i
+                                        class="fas fa-sign-in-alt me-2"></i>Login</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.register') }}"><i
+                                        class="fas fa-user-plus me-2"></i>Register</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href="{{ url_for('main.about') }}"><i
+                                        class="fas fa-info-circle me-2"></i>About
+                                    us</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="py-5" style="background: linear-gradient(45deg, var(--hospital-dark), var(--hospital-color))">
+        <div class="container py-5">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-5 mb-lg-0 text-white">
+                    <div class="d-flex flex-wrap align-items-center mb-4 gap-3">
+                        <h1 class="display-4 fw-bold mb-0 me-3" style="line-height: 1.2;">
+                            <span class="d-block">Pharmacy Management</span>
+                            <span class="d-block text-hospital-mid">System</span>
+                        </h1>
+
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <span class="badge hero-badge fs-6 px-3 py-2">
+                                <i class="fas fa-bolt me-2"></i>LIVE
+                            </span>
+                        </div>
+                    </div>
+                    <p class="lead mb-4 opacity-75">
+                        Kenya's leading pharmacy management system with real-time inventory, Performance analytics, and
+                        Sales processing.
+                    </p>
+
+                    <div class="d-flex gap-3">
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-hospital">
+                            <i class="fas fa-rocket me-2"></i>Get Started
+                        </a>
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-hospital text-white">
+                            <i class="fas fa-sign-in-alt me-2"></i>Existing User
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-lg overflow-hidden rounded-3">
+                        <div id="pharmacyCarousel" class="carousel slide" data-bs-ride="carousel"
+                            data-bs-interval="4000">
+                            <!-- Slide Indicators -->
+                            <div class="carousel-indicators">
+                                <button type="button" data-bs-target="#pharmacyCarousel" data-bs-slide-to="0"
+                                    class="active" aria-current="true" aria-label="Slide 1"></button>
+                                <button type="button" data-bs-target="#pharmacyCarousel" data-bs-slide-to="1"
+                                    aria-label="Slide 2"></button>
+                                <button type="button" data-bs-target="#pharmacyCarousel" data-bs-slide-to="2"
+                                    aria-label="Slide 3"></button>
+                            </div>
+
+                            <!-- Carousel Images -->
+                            <div class="carousel-inner rounded-3">
+                                <!-- Slide 1 -->
+                                <div class="carousel-item active">
+                                    <img src="{{ url_for('static', filename='images/orange-capsules.jpg') }}"
+                                        class="d-block w-100" alt="Pharmacy Counter">
+                                    <div class="carousel-caption d-none d-md-block bg-hospital py-3 px-4 rounded-3"
+                                        style="opacity: .85;">
+                                        <h5 class="mb-1"><i class="fas fa-capsules me-2"></i>Medication Management</h5>
+                                        <p class="mb-0 small">Get low stock and out of stock alerts.</p>
+                                    </div>
+                                </div>
+                                <!-- Slide 2 -->
+                                <div class="carousel-item">
+                                    <img src="{{ url_for('static', filename='images/supplements.jpg') }}"
+                                        class="d-block w-100" alt="Supplements">
+                                    <div class="carousel-caption d-none d-md-block bg-hospital py-3 px-4 rounded-3"
+                                        style="opacity: .85;">
+                                        <h5 class="mb-1"><i class="fas fa-prescription-bottle me-2"></i>Supplement
+                                            Inventory</h5>
+                                        <p class="mb-0 small">Comprehensive stock insights.</p>
+                                    </div>
+                                </div>
+                                <!-- Slide 3 -->
+                                <div class="carousel-item">
+                                    <img src="{{ url_for('static', filename='images/stickman-capsules.jpg') }}"
+                                        class="d-block w-100" alt="Stickman capsules">
+                                    <div class="carousel-caption d-none d-md-block bg-hospital py-3 px-4 rounded-3"
+                                        style="opacity: .85;">
+                                        <h5 class="mb-1"><i class="fas fa-box-open me-2"></i>Batch expiry tracking
+                                        </h5>
+                                        <p class="mb-0 small">Track and check on batch expiry dates.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Controls -->
+                            <button class="carousel-control-prev" type="button" data-bs-target="#pharmacyCarousel"
+                                data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#pharmacyCarousel"
+                                data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5 bg-hospital-light">
+        <div class="container py-5">
+            <h2 class="text-center mb-5 fw-bold text-hospital"><i class="fas fa-star me-2"></i>Core Features</h2>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card card h-100">
+                        <div class="card-header bg-hospital text-white">
+                            <i class="fas fa-pills me-2"></i> Inventory Management
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-4"><i class="fas fa-check-circle text-hospital me-2"></i>Real-time
+                                stock tracking</p>
+                            <p class="text-muted mb-4"><i class="fas fa-check-circle text-hospital me-2"></i>Expiration
+                                alerts</p>
+                            <p class="text-muted"><i class="fas fa-check-circle text-hospital me-2"></i>Batch management
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card card h-100">
+                        <div class="card-header bg-hospital text-white">
+                            <i class="fas fa-cash-register me-2"></i> Sales Processing
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-4"><i class="fas fa-check-circle text-hospital me-2"></i>Sales
+                                History</p>
+                            <p class="text-muted"><i class="fas fa-check-circle text-hospital me-2"></i>Receipt printing
+                            </p>
+                            <p class="text-muted mb-4"><i class="fas fa-check-circle text-hospital me-2"></i>M-Pesa
+                                integration <span class="badge bg-secondary ms-2">COMING SOON</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="feature-card card h-100">
+                        <div class="card-header bg-hospital text-white">
+                            <i class="fas fa-chart-line me-2"></i> Analytics
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-4"><i class="fas fa-check-circle text-hospital me-2"></i>Sales
+                                reports</p>
+                            <p class="text-muted mb-4"><i class="fas fa-check-circle text-hospital me-2"></i>Profit
+                                analysis</p>
+                            <p class="text-muted"><i class="fas fa-check-circle text-hospital me-2"></i>Product
+                                Performance</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Kenya-Specific FAQs -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5 fw-bold text-hospital"><i class="fas fa-question-circle me-2"></i>Kenya Pharmacy
+                FAQs</h2>
+
+            <div class="row g-4">
+
+                <div class="col-md-6">
+                    <div class="faq-card card p-4 h-100">
+                        <h5 class="d-flex align-items-center">
+                            <i class="fas fa-file-contract text-hospital me-3"></i>
+                            Is the software compliant with Kenya pharmacy regulations?
+                        </h5>
+                        <p class="mt-2">Our system meets all Kenya Pharmacy Board requirements including audit trails,
+                            prescription tracking, and reporting standards.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="faq-card card p-4 h-100">
+                        <h5 class="d-flex align-items-center">
+                            <i class="fas fa-headset text-hospital me-3"></i>
+                            Is local technical support available?
+                        </h5>
+                        <p class="mt-2">We provide dedicated Kenya-based support from our office in Nairobi with
+                            same-day response guarantee.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-12 mt-4 text-center">
+                    <a href="{{ url_for('main.support') }}" class="btn btn-outline-hospital">
+                        <i class="fas fa-question me-2"></i>View All FAQs
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section for Kenyan Market -->
+    <section class="py-5 bg-hospital-light">
+        <div class="container py-3 py-md-5">
+            <div class="text-center mb-4 mb-md-5">
+                <h2 class="fw-bold text-hospital mb-3">
+                    <i class="fas fa-tags me-2"></i>Affordable for Kenyan Chemists
+                </h2>
+                <p class="lead text-muted">Simple pricing tailored for pharmacies of all sizes</p>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-xl-6">
+                    <div class="card border-0 shadow-lg overflow-hidden">
+                        <div class="card-body p-4 p-md-5">
+                            <div class="row align-items-center">
+                                <div class="col-md-6 mb-4 mb-md-0">
+                                    <h3 class="display-5 fw-bold text-hospital mb-3">
+                                        From 750 <span class="fs-4 text-muted">KES/month</span>
+                                    </h3>
+                                    <ul class="list-unstyled fs-5">
+                                        <li class="mb-3">
+                                            <i class="fas fa-check-circle text-hospital me-2"></i>Inventory management
+                                        </li>
+                                        <li class="mb-3">
+                                            <i class="fas fa-check-circle text-hospital me-2"></i>Basic sales reporting
+                                        </li>
+                                        <li class="mb-3">
+                                            <i class="fas fa-check-circle text-hospital me-2"></i>M-Pesa integration
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="col-md-6 text-center text-md-start">
+                                    <div class="d-grid gap-3">
+                                        <a href="{{ url_for('auth.register') }}" class="btn btn-hospital btn-lg py-3">
+                                            <i class="fas fa-rocket me-2"></i>Start Free 3-Day Trial
+                                        </a>
+                                        <p class="small text-muted mb-0">No credit card required • Cancel anytime</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-hospital text-white mt-auto">
+        <div class="container py-4">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <h5><i class="fas fa-prescription-bottle-alt me-2"></i> PharmaDesk POS software</h5>
+                    <p class="text-hospital-light">Trusted by our early partners — and growing fast. We are empowering
+                        forward-thinking pharmacies across Kenya with fast, reliable, and modern POS solutions. </p>
+                </div>
+                <div class="col-md-4">
+                    <h5><i class="fas fa-link me-2"></i>Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{{ url_for('auth.register') }}" class="text-white text-decoration-none"><i
+                                    class="fas fa-user-plus me-2"></i>Register</a></li>
+                        <li><a href="{{ url_for('main.features') }}" class="text-white text-decoration-none"><i
+                                    class="fas fa-star me-2"></i>Features</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.about') }}"><i
+                                    class="fas fa-info-circle me-2"></i>About
+                                us</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('main.privacy_policy') }}"><i
+                                    class="fas fa-shield-alt me-2"></i>Privacy
+                                Policy</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5><i class="fas fa-address-card me-2"></i>Contact</h5>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-phone me-2"></i> +254 115 082 970</li>
+                        <li><i class="fas fa-envelope me-2"></i> support@pharmadesk.co.ke</li>
+                        <li><i class="fas fa-map-marker-alt me-2"></i> Nairobi, Kenya</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="text-center mt-4 pt-3 border-top border-hospital-light">
+                <small>&copy; 2025 Pharmacy POS. All rights reserved.</small>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

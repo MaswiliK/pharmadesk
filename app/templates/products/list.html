@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% set active = 'inventory' %}
+
+{% block navbar_items %}
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'dashboard' }}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+</li>
+<li class="nav-item">
+    <a class="nav-link {{ 'active' if active == 'inventory' }}"
+        href="{{ url_for('main.inventory_summary') }}">Inventory</a>
+</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <form method="get" action="{{ url_for('main.product_list') }}">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-5">
+                        <input type="text" class="form-control" name="search" placeholder="Search products..."
+                            value="{{ search }}">
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" name="category">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if selected_category==category.id %}selected{% endif
+                                %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-hospital w-100">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-hospital text-white">
+            <div
+                class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                <h5 class="mb-0 flex-shrink-0">
+                    <i class="fas fa-capsules me-2"></i>Pharmaceutical Inventory
+                </h5>
+                <div class="d-flex flex-wrap gap-2 w-100 w-md-auto justify-content-end">
+                    <a href="{{ url_for('main.add_category') }}" class="btn btn-hospital btn-sm flex-grow-0">
+                        <i class="fas fa-plus-circle me-2"></i>Add Category
+                    </a>
+                    <a href="{{ url_for('main.add_product') }}" class="btn btn-light btn-sm flex-grow-0">
+                        <i class="fas fa-plus-circle me-2"></i>Add Product
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Selling Price</th>
+                            <th>Buying Price</th>
+                            <th>Max Discount</th>
+                            <th>Quantity</th>
+                            <th>Profit Margin</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr class="{% if not product.is_active %}table-secondary{% endif %}">
+                            <td>
+                                {{ product.name }}
+                                <span class="badge ms-2 
+                                {% if not product.is_active %}bg-warning text-dark
+                                {% elif product.stock_status == 'Out of Stock' %}bg-danger
+                                {% elif product.stock_status == 'Low Stock' %}bg-warning text-dark
+                                {% else %}bg-success{% endif %}">
+                                    {{ product.stock_status }}
+                                </span>
+                            </td>
+                            <td>{{ product.category.name }}</td>
+                            <td>{{ product.selling_price | currency }}</td>
+                            <td>{{ product.cost_price | currency }}</td>
+                            <td>{{ product.max_discount | currency }}</td>
+                            <td>{{ product.quantity }}</td>
+                            <td>{{ product.margin | round(1) }}%</td>
+                            <td class="text-end">
+                                <div class="btn-group">
+                                    <a href="{{ url_for('main.edit_product', id=product.id) }}"
+                                        class="btn btn-sm btn-hospital">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                        data-bs-target="#deleteModal{{ product.id }}" {% if product.quantity> 0
+                                        %}disabled title="Cannot delete - contains products in stock"{% endif %}>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Delete Modal for each product -->
+                                <div class="modal fade" id="deleteModal{{ product.id }}" tabindex="-1"
+                                    aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirm Delete</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                    aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Are you sure you want to delete "{{ product.name }}"? This action
+                                                    cannot be undone.</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-bs-dismiss="modal">Cancel</button>
+                                                <form action="{{ url_for('main.delete_product', id=product.id) }}"
+                                                    method="POST">
+                                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if products.pages > 1 %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if products.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="{{ url_for('main.product_list', page=products.prev_num, search=search, category=selected_category) }}">
+                            Previous
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in products.iter_pages() %}
+                    {% if page_num %}
+                    <li class="page-item {% if page_num == products.page %}active{% endif %}">
+                        <a class="page-link"
+                            href="{{ url_for('main.product_list', page=page_num, search=search, category=selected_category) }}">
+                            {{ page_num }}
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if products.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="{{ url_for('main.product_list', page=products.next_num, search=search, category=selected_category) }}">
+                            Next
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
