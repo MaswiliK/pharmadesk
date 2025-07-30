@@ -133,46 +133,55 @@
                     <i class="fas fa-file-invoice-dollar me-2"></i> Subscription & Billing
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">Your current plan requires a monthly payment to keep your account active.</p>
+                    <div class="mb-3">
+                        <p>Your current plan requires a monthly payment to keep your account
+                            active.</p>
+                        <p class="text-muted mb-2">Currently our business till is out of service, please use the M-Pesa
+                            payment option below.</p>
+                    </div>
 
-                    <!-- M-Pesa BuyGoods Sticker Placeholder -->
-                    <div class="text-center my-3">
-                        <div class="border p-3 rounded bg-light">
-                            <p class="mb-1 fw-bold">Payments are processed via our official M-Pesa till <br>
-                                <span class="text-success">(in the founder’s name)</span>.
-                            </p>
-                            <p class="text-muted small mb-0">Business till upgrade is underway.</p>
-                            <img src="/static/images/mpesa-buygoods.jpg" alt="M-Pesa BuyGoods" class="img-fluid mt-2"
-                                style="max-height: 200px;">
-                        </div>
+                    <div class="alert alert-info mb-4">
+                        <h6 class="fw-bold">M-Pesa Payment Instructions:</h6>
+                        <ol class="mb-0">
+                            <li>Go to M-Pesa menu</li>
+                            <li>Select "Send Money"</li>
+                            <li>Enter our phone number: <strong>+2547 58 848 354</strong></li>
+                            <li>Account name: <strong>Teddy Kalua</strong></li>
+                            <li>Enter amount: <strong>KES 750</strong> (KES 1,000 for first payment)</li>
+                            </li>
+                            <li>Complete transaction and enter receipt number below</li>
+                        </ol>
                     </div>
 
                     <form method="POST" action="{{ url_for('main.submit_receipt') }}">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Monthly Amount</label>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Monthly Subscription</label>
                                 <div class="input-group">
                                     <span class="input-group-text">KES</span>
                                     <input type="text" class="form-control" value="750" disabled>
-                                    <p class="text-muted small mb-0">First time payment is KES 1,000( 250 - Activation
-                                        Fee) .</p>
                                 </div>
+                                <p class="text-muted small mt-1 mb-0">First payment: KES 1,000 (includes KES 250
+                                    activation fee)</p>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label class="form-label fw-bold">Your User Code</label>
                                 <input type="text" class="form-control" value="{{ current_user.user_code }}" disabled>
                                 <input type="hidden" name="user_code" value="{{ current_user.user_code }}">
                             </div>
                         </div>
 
-                        <!-- Manual Receipt Entry -->
                         <div class="mt-3">
-                            <label for="mpesaReceipt" class="form-label fw-bold">Enter M-Pesa Receipt Number</label>
-                            <input type="text" class="form-control" id="mpesaReceipt" name="receipt"
-                                placeholder="e.g., QFG123XYZ" required>
-                            <button class="btn btn-primary mt-2 w-100" type="submit">
-                                <i class="fas fa-check-circle me-2"></i> Submit Receipt
-                            </button>
+                            <label for="mpesaReceipt" class="form-label fw-bold">M-Pesa Receipt Number</label>
+                            <div class="input-group mb-3">
+                                <input type="text" class="form-control" id="mpesaReceipt" name="receipt"
+                                    placeholder="e.g., QFG123XYZ" required>
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-check-circle me-2"></i> Submit Receipt
+                                </button>
+                            </div>
+                            <small class="text-muted">Please enter the receipt number from your M-Pesa confirmation
+                                message</small>
                         </div>
                     </form>
                 </div>
