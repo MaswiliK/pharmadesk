@@ -4,7 +4,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from urllib.parse import urlsplit
 from app.forms import LoginForm, RegistrationForm
 from app.models import User, Pharmacy
-from app import db
+from app import db, limiter
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import logging
@@ -17,6 +17,7 @@ eat_tz = ZoneInfo('Africa/Nairobi')
 auth = Blueprint('auth', __name__)
 
 @auth.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute; 20 per hour")   # 5 attempts/min, hard cap 20/hour
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))
@@ -68,11 +69,13 @@ def logout():
     return redirect(url_for('auth.login'))
 
 @auth.route('/forgot-password', methods=['GET', 'POST'])
+@limiter.limit("5 per hour")
 def forgot_password():
     # Your forgot password logic here
     return render_template('authentication/forgot_password.html')
 
 @auth.route('/register', methods=['GET', 'POST'])
+@limiter.limit("5 per hour")
 def register():
     if current_user.is_authenticated:
         return redirect(url_for('main.dashboard'))

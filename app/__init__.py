@@ -7,11 +7,15 @@ from flask_caching import Cache
 from flask_login import LoginManager
 from dotenv import load_dotenv
 from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Initialize extensions without app 
 db = SQLAlchemy()
 cache = Cache()
 login_manager = LoginManager()
+limiter = Limiter(key_func=get_remote_address, default_limits=[])
 
 # Load environment variables once at startup
 load_dotenv()
@@ -62,6 +66,12 @@ def create_app():
         'SUBSCRIPTION_DAYS': 30,
         'WTF_CSRF_ENABLED': True,           # explicit 
         'WTF_CSRF_TIME_LIMIT': 3600,        # token expires after 1 hour
+        # Rate limiter storage
+        # Dev: in-memory (resets on restart, fine for local)
+        # Production: swap to 'redis://localhost:6379/1' once you add Redis
+        'RATELIMIT_STORAGE_URI': os.environ.get('RATELIMIT_STORAGE_URI', 'memory://'),
+        'RATELIMIT_HEADERS_ENABLED': True,   # sends X-RateLimit-* headers to clients
+        'RATELIMIT_STRATEGY': 'fixed-window-elastic-expiry'
     })
 
     # Initialize extensions with app
@@ -70,6 +80,7 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
     csrf.init_app(app) 
+    limiter.init_app(app)
 
     # Import and register template globals
     from .template_globals import init_template_globals
@@ -86,6 +97,9 @@ def create_app():
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(payments_blueprint, url_prefix='/payments')
     app.register_blueprint(admin_bp)
+    
+    # Exempt callback from limiter — it's called by Safaricom, not users
+    limiter.exempt(payments_blueprint)
     
     @login_manager.user_loader
     def load_user(user_id):

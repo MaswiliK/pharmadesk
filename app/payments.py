@@ -1,3 +1,4 @@
+# app/payments.py
 import os
 import time
 import base64
@@ -10,7 +11,10 @@ from flask import Blueprint, request, jsonify
 
 from app import db
 from app.models import User, Payment  # assuming Payment already defined
-from pytz import timezone
+from zoneinfo import ZoneInfo
+from app import db, limiter
+
+EAT_TZ = ZoneInfo('Africa/Nairobi')
 
 pay_bp = Blueprint('pay_bp', __name__)
 
@@ -77,6 +81,7 @@ def mark_user_expired_if_due(user: User):
 # --- ROUTES ---
 
 @pay_bp.route('/api/pos/initiate-payment', methods=['POST'])
+@limiter.limit("3 per minute; 10 per hour") 
 def initiate_pos_payment():
     """
     Body: { amount:int, phoneNumber:str, orderId:str (user_code) }
@@ -274,21 +279,8 @@ def check_payment_status(merchant_request_id):
         "result_desc": payment.result_desc
     })
 
-@pay_bp.route('/debug/payments', methods=['GET'])
-def debug_payments():
-    payments = Payment.query.order_by(Payment.created_at.desc()).all()
-    data = []
-    for p in payments:
-        data.append({
-            "id": p.id,
-            "user_code": p.user_code,
-            "phone_number": p.phone_number,
-            "amount": p.amount,
-            "status": p.status,
-            "merchant_request_id": p.merchant_request_id,
-            "checkout_request_id": p.checkout_request_id,
-            "mpesa_receipt_number": p.mpesa_receipt_number,
-            "result_desc": p.result_desc,
-            "created_at": p.created_at.strftime("%Y-%m-%d %H:%M:%S")
-        })
-    return jsonify(data)
+""" # In terminal: flask shell
+from app.models import Payment
+Payment.query.order_by(Payment.created_at.desc()).limit(10).all() 
+"""
+

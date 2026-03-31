@@ -5,7 +5,8 @@ from sqlalchemy import or_, and_, func, case, Date, desc, cast, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import joinedload, load_only
 from .models import Product, Category, Sale, Expense, AlertType, Batch, PaymentReceipt
-from . import db 
+from . import db, cache, limiter 
+from flask_limiter.errors import RateLimitExceeded
 from app.forms import (
     ProductForm, 
     ExpenseForm,
@@ -33,6 +34,17 @@ eat_tz = ZoneInfo("Africa/Nairobi")
 main_bp = Blueprint('main', __name__)
 
 logger = logging.getLogger(__name__) 
+
+@main_bp.errorhandler(RateLimitExceeded)
+def handle_rate_limit(e):
+    # Return JSON for AJAX endpoints, redirect for form endpoints
+    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({
+            "status": "error",
+            "message": "Too many requests. Please slow down and try again shortly."
+        }), 429
+    flash("Too many attempts. Please wait a moment before trying again.", "danger")
+    return redirect(request.referrer or url_for('main.dashboard')), 429
 
 def global_admin_required(f):
     """Only GLOBAL_ADMIN may pass."""
@@ -228,6 +240,7 @@ def profile():
     )
     
 @main_bp.route("/submit-receipt", methods=["POST"])
+@limiter.limit("10 per day")
 @login_required
 def submit_receipt():
     receipt = (request.form.get("receipt") or "").strip().upper()  # Normalize input
@@ -854,6 +867,7 @@ def cart_total():
     return jsonify({"total": f"{total_amount:,.2f}"})  
     
 @main_bp.route('/api/add_to_cart', methods=['POST'])
+@limiter.limit("60 per minute")
 @handle_errors          
 @login_required         
 @subscription_required  
