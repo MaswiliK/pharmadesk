@@ -6,7 +6,7 @@ from app.forms import LoginForm, RegistrationForm
 from app.models import User, Pharmacy
 from app import db
 from datetime import datetime
-from pytz import timezone
+from zoneinfo import ZoneInfo
 import logging
 
 # Set up logging

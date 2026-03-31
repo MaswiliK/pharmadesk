@@ -1,3 +1,4 @@
+# app/__init__.py
 import os
 from datetime import datetime
 from flask import Flask
@@ -5,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_caching import Cache
 from flask_login import LoginManager
 from dotenv import load_dotenv
-from flask_wtf.csrf import generate_csrf
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 # Initialize extensions without app 
 db = SQLAlchemy()
@@ -15,9 +16,16 @@ login_manager = LoginManager()
 # Load environment variables once at startup
 load_dotenv()
 
+# Initialize CSRF protection
+csrf = CSRFProtect()
+
 def create_app():
     """Application factory function to create and configure the Flask app"""
     app = Flask(__name__)
+    
+    secret = os.environ.get('SECRET_KEY')
+    if not secret:
+        raise RuntimeError("SECRET_KEY is not set. Add it to your .env file.")
     
     # Load essential configuration
     app.config.update({
@@ -28,7 +36,9 @@ def create_app():
         'REMEMBER_COOKIE_DURATION': 30 * 24 * 3600,  # 30 days in seconds
         'TRIAL_HOURS': 72,
         'PENDING_GRACE_HOURS': 48,
-        'SUBSCRIPTION_DAYS': 30
+        'SUBSCRIPTION_DAYS': 30,
+        'WTF_CSRF_ENABLED': True,           # explicit 
+        'WTF_CSRF_TIME_LIMIT': 3600,        # token expires after 1 hour
     })
 
     # Initialize extensions with app
@@ -36,6 +46,7 @@ def create_app():
     cache.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
+    csrf.init_app(app) 
 
     # Import and register template globals
     from .template_globals import init_template_globals
@@ -68,11 +79,11 @@ def create_app():
     
     @app.template_filter('utc_to_eat')
     def utc_to_eat(dt):
-        """Convert UTC datetime to East Africa Time"""
-        from pytz import timezone, utc
-        if not dt.tzinfo:
-            dt = utc.localize(dt)
-        return dt.astimezone(timezone("Africa/Nairobi"))
+        from zoneinfo import ZoneInfo
+        from datetime import timezone as dt_timezone
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=dt_timezone.utc)
+        return dt.astimezone(ZoneInfo("Africa/Nairobi"))
     
     @app.template_filter('format_date')
     def format_date_filter(dt, fmt='%Y-%m-%d'):
@@ -110,9 +121,6 @@ def create_app():
             'PaymentMethod': PaymentMethod,
             'now': datetime.utcnow()
         }
-        
-    @app.context_processor
-    def inject_csrf_token():
-        return dict(csrf_token=generate_csrf)    
+    
 
     return app

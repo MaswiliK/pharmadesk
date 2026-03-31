@@ -139,7 +139,9 @@ function setupAddToCartForm() {
             const response = await fetch('/api/add_to_cart', {
                 method: 'POST',
                 body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCSRFToken() 
+                 }
             });
 
             const data = await response.json();
