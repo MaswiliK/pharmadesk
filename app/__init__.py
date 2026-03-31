@@ -27,9 +27,32 @@ def create_app():
     if not secret:
         raise RuntimeError("SECRET_KEY is not set. Add it to your .env file.")
     
+    # ── Validate required environment variables at startup ──
+    _REQUIRED = [
+        'SECRET_KEY',
+        'DATABASE_URL',
+        'MPESA_CONSUMER_KEY',
+        'MPESA_CONSUMER_SECRET',
+        'MPESA_TILL_NUMBER',
+        'MPESA_PASSKEY',
+    ]
+    _missing = [v for v in _REQUIRED if not os.environ.get(v)]
+    if _missing:
+        raise RuntimeError(
+            f"Missing required environment variables: {', '.join(_missing)}\n"
+            "Copy .env.example to .env and fill in all values."
+        )
+
+    # ── Guard SECRET_KEY strength 
+    secret = os.environ.get('SECRET_KEY')
+    if len(secret) < 32:
+        raise RuntimeError("SECRET_KEY is too short. Generate one with: "
+                        "python -c \"import secrets; print(secrets.token_hex(32))\"")
+        
     # Load essential configuration
     app.config.update({
         'SECRET_KEY': os.environ.get('SECRET_KEY'),
+        'DEBUG': os.environ.get('FLASK_DEBUG', 'false').lower() == 'true',
         'SQLALCHEMY_DATABASE_URI': os.environ.get("DATABASE_URL"),
         'SQLALCHEMY_TRACK_MODIFICATIONS': False,
         'CACHE_TYPE': 'SimpleCache',
