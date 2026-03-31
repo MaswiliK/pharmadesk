@@ -184,7 +184,7 @@ function setupClearCartForm() {
                 method: 'POST',
                 headers: { 
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': getCSRFToken()  // Important security addition
+                    'X-CSRFToken': getCSRFToken()  // Important security addition
                 }
             });
 
@@ -232,7 +232,7 @@ function bindRemoveFromCartForms() {
                 method: 'POST',
                 headers: { 
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-Token': getCSRFToken()  // Important security addition
+                    'X-CSRFToken': getCSRFToken()  // Important security addition
                 }
             });
 

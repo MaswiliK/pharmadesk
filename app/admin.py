@@ -1,3 +1,4 @@
+# app/admin.py
 from __future__ import annotations  
 
 from datetime import datetime, timedelta
@@ -9,13 +10,14 @@ from flask_login import login_required, current_user
 from .models import db, User, Pharmacy, PaymentReceipt
 from .routes import admin_required
 import pytz
+from zoneinfo import ZoneInfo
 
 
-eat_tz = pytz.timezone("Africa/Nairobi")
+eat_tz = ZoneInfo("Africa/Nairobi")
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
-EAT_TZ = pytz.timezone('Africa/Nairobi')
+EAT_TZ = ZoneInfo('Africa/Nairobi')
 VALID_STATUSES = {'pending', 'approved', 'rejected'}
 
 
@@ -29,7 +31,7 @@ def _coerce_status(s: str | None) -> str:
 
 
 def _now_eat() -> datetime:
-    return datetime.utcnow().replace(tzinfo=pytz.utc).astimezone(EAT_TZ)
+    return datetime.utcnow().replace(tzinfo=ZoneInfo('UTC')).astimezone(EAT_TZ)
 
 
 def _subscription_days() -> int:

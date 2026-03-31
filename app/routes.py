@@ -1,3 +1,4 @@
+# app/routes.py
 from flask import Blueprint, render_template, redirect, url_for, request, flash, make_response, session, current_app, jsonify, Response, abort
 from flask_login import login_required, current_user
 from sqlalchemy import or_, and_, func, case, Date, desc, cast, select
@@ -20,9 +21,6 @@ from collections import defaultdict
 from app import cache 
 import os
 from zoneinfo import ZoneInfo
-import pytz
-from pytz import timezone
-from decimal import Decimal
 import io
 from io import StringIO
 import csv
@@ -31,9 +29,6 @@ from decimal import Decimal, ROUND_HALF_UP
 from werkzeug.exceptions import NotFound, InternalServerError, HTTPException
 
 eat_tz = ZoneInfo("Africa/Nairobi")
-
-eat_tz = pytz.timezone("Africa/Nairobi") 
-
 
 main_bp = Blueprint('main', __name__)
 
@@ -175,13 +170,26 @@ def dashboard():
 @db_transaction
 def profile():
     if request.method == 'POST':
+        import re
+        
         full_name = request.form.get('full_name', '').strip()
-        phone = request.form.get('phone', '').strip()
-        email = request.form.get('email', '').strip()
+        phone     = request.form.get('phone', '').strip()
+        email     = request.form.get('email', '').strip()
+        
+        # Length guards (match model column sizes)
+        if full_name and len(full_name) > 150:
+            flash('Full name must be 150 characters or fewer.', 'danger')
+            return redirect(url_for('main.profile'))
+        if phone and not re.fullmatch(r'^07\d{8}$', phone):
+            flash('Enter a valid Safaricom number starting with 07.', 'danger')
+            return redirect(url_for('main.profile'))
+        if email and (len(email) > 120 or '@' not in email or '.' not in email.split('@')[-1]):
+            flash('Enter a valid email address.', 'danger')
+            return redirect(url_for('main.profile'))
 
         current_user.full_name = full_name or current_user.full_name
-        current_user.phone = phone or current_user.phone
-        current_user.email = email or current_user.email
+        current_user.phone     = phone     or current_user.phone
+        current_user.email     = email     or current_user.email
 
         try:
             db.session.commit()
@@ -214,9 +222,10 @@ def profile():
     )
     
 @main_bp.route("/submit-receipt", methods=["POST"])
+@login_required
 def submit_receipt():
-    receipt = request.form.get("receipt").strip().upper()  # Normalize input
-    user_code = request.form.get("user_code")
+    receipt = (request.form.get("receipt") or "").strip().upper()  # Normalize input
+    user_code = current_user.user_code
 
     if not receipt or not user_code:
         flash("Missing receipt number or user code.", "danger")
@@ -260,12 +269,16 @@ def update_profile():
     phone = (data.get('phone') or '').strip()
     email = (data.get('email') or '').strip()
 
-    if not full_name:
-        return jsonify(success=False, message='Full name is required.'), 400
-    if not phone:
-        return jsonify(success=False, message='Phone number is required.'), 400
-    if email and '@' not in email:
-        return jsonify(success=False, message='Invalid email format.'), 400
+    import re
+
+    if len(full_name) > 150:
+        return jsonify(success=False, message='Full name must be 150 characters or fewer.'), 400
+    if not re.fullmatch(r'^07\d{8}$', phone):
+        return jsonify(success=False, message='Enter a valid Safaricom number starting with 07.'), 400
+    if email and not re.fullmatch(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', email):
+        return jsonify(success=False, message='Invalid email address.'), 400
+    if email and len(email) > 120:
+        return jsonify(success=False, message='Email must be 120 characters or fewer.'), 400
 
     try:
         current_user.full_name = full_name
@@ -291,10 +304,14 @@ def update_pharmacy():
         return jsonify(success=False, message='Missing required fields.'), 400
 
     try:
-        if current_user.pharmacy.id != int(pharmacy_id):
-            return jsonify(success=False, message='Invalid pharmacy ID.'), 403
+        try:
+            monthly_target_value = Decimal(str(monthly_target))
+        except Exception:
+            return jsonify(success=False, message='Monthly target must be a valid number.'), 400
 
-        monthly_target_value = float(monthly_target)
+        if monthly_target_value < 0 or monthly_target_value > Decimal('100000000'):
+            return jsonify(success=False, message='Monthly target must be between 0 and 100,000,000.'), 400
+
         current_user.pharmacy.monthly_target = monthly_target_value
         db.session.commit()
         return jsonify(success=True, message='Pharmacy information updated successfully.')
@@ -311,9 +328,17 @@ def settings():
         # Handle settings updates
         try:
             # Update pharmacy settings
-            monthly_target = request.form.get('monthly_target')
-            if monthly_target:
-                current_user.pharmacy.monthly_target = Decimal(monthly_target)
+            monthly_target_raw = request.form.get('monthly_target', '').strip()
+            if monthly_target_raw:
+                try:
+                    monthly_target_val = Decimal(monthly_target_raw)
+                except Exception:
+                    flash('Monthly target must be a valid number.', 'danger')
+                    return redirect(url_for('main.settings'))
+                if monthly_target_val < 0 or monthly_target_val > Decimal('100000000'):
+                    flash('Monthly target must be between 0 and 100,000,000.', 'danger')
+                    return redirect(url_for('main.settings'))
+                current_user.pharmacy.monthly_target = monthly_target_val
             
             # In a real app, you would save all the toggle settings here
             # For example:
@@ -602,7 +627,7 @@ def edit_batch(batch_id):
 @subscription_required  
 @db_transaction
 def delete_batch(batch_id):
-    batch = Batch.query.filter_by(id=id, pharmacy_id=current_user.pharmacy_id).first_or_404()
+    batch = Batch.query.filter_by(id=batch_id, pharmacy_id=current_user.pharmacy_id).first_or_404()
     db.session.delete(batch)
     db.session.commit()
     flash('Batch deleted.', 'success')
@@ -880,8 +905,8 @@ def record_sale():
             'product_id': product.id,
             'product_name': product.name,
             'quantity': requested_quantity,
-            'unit_price': float(product.price),
-            'total_price': float(product.price * requested_quantity),
+            'unit_price': float(product.selling_price),
+            'total_price': float(product.selling_price * requested_quantity),
             'requires_prescription': product.requires_prescription
         }
         
