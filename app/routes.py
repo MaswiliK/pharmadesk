@@ -34,13 +34,27 @@ main_bp = Blueprint('main', __name__)
 
 logger = logging.getLogger(__name__) 
 
-def admin_required(f):
-    """Allow only logged‑in users with role=='ADMIN'. Assumes @login_required runs before."""
+def global_admin_required(f):
+    """Only GLOBAL_ADMIN may pass."""
     @wraps(f)
     def wrapper(*args, **kwargs):
         if not current_user.is_authenticated:
-            abort(401)  # normally unreachable if @login_required used
-        if getattr(current_user, 'role', None) != 'ADMIN':
+            abort(401)
+        if getattr(current_user, 'role', None) != 'GLOBAL_ADMIN':
+            abort(403)
+        return f(*args, **kwargs)
+    return wrapper
+
+# Keep the old name as an alias so admin.py import keeps working unchanged
+admin_required = global_admin_required
+
+def pharmacy_admin_required(f):
+    """GLOBAL_ADMIN or PHARMACY_ADMIN may pass."""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated:
+            abort(401)
+        if getattr(current_user, 'role', None) not in ('GLOBAL_ADMIN', 'PHARMACY_ADMIN'):
             abort(403)
         return f(*args, **kwargs)
     return wrapper
@@ -50,57 +64,50 @@ def subscription_required(f):
     def wrapper(*args, **kwargs):
         if not current_user.is_authenticated:
             return redirect(url_for('auth.login'))
-        
-        # For admins bypass
-        if getattr(current_user, 'role', None) == 'ADMIN':
+
+        if current_user.role == 'GLOBAL_ADMIN':
             return f(*args, **kwargs)
 
-        # Timezone handling
-        eat_tz = timezone('Africa/Nairobi')
-        now = datetime.now(eat_tz)  # Timezone-aware
-        
-        # Get created_at and ensure it's timezone-aware
-        created_at = getattr(current_user, 'created_at', None)
-        if created_at:
-            if not created_at.tzinfo:  # If naive, localize it
-                created_at = eat_tz.localize(created_at)
+        # ── Cashier: inherit the pharmacy admin's subscription ──
+        if current_user.role == 'CASHIER':
+            from .models import User as _User
+            pharmacy_owner = _User.query.filter_by(
+                pharmacy_id=current_user.pharmacy_id,
+                role='PHARMACY_ADMIN'
+            ).first()
+            if pharmacy_owner and pharmacy_owner.subscription_status == 'ACTIVE':
+                now = datetime.now(eat_tz)
+                due = getattr(pharmacy_owner, 'next_payment_due', None)
+                if due and due > now:
+                    return f(*args, **kwargs)
+            flash("Your pharmacy's subscription has expired. Contact your pharmacy admin.", 'warning')
+            return redirect(url_for('main.profile'))
 
-        # Configurable durations
+        # ── Pharmacy admin: check own subscription ──
+        now = datetime.now(eat_tz)
+        created_at = getattr(current_user, 'created_at', None)
+        if created_at and created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=eat_tz)
+
         trial_hours = current_app.config.get('TRIAL_HOURS', 72)
         grace_hours = current_app.config.get('PENDING_GRACE_HOURS', 48)
 
-        # 1. New-user trial check (now with proper timezone comparison)
         if created_at and now < (created_at + timedelta(hours=trial_hours)):
             return f(*args, **kwargs)
 
-        # ---------------------------
-        # 2. Active subscription check
-        # ---------------------------
         next_due = getattr(current_user, 'next_payment_due', None)
-        if (
-            current_user.subscription_status == 'ACTIVE' and
-            next_due and next_due > now
-        ):
+        if current_user.subscription_status == 'ACTIVE' and next_due and next_due > now:
             return f(*args, **kwargs)
 
-        # ---------------------------
-        # 3. Grace period after receipt submission
-        # ---------------------------
-        from .models import PaymentReceipt  # Avoid circular imports
+        from .models import PaymentReceipt as _PR
         last_receipt = (
-            PaymentReceipt.query
-            .filter_by(user_code=current_user.user_code)
-            .order_by(PaymentReceipt.created_at.desc())
-            .first()
+            _PR.query.filter_by(user_code=current_user.user_code)
+            .order_by(_PR.created_at.desc()).first()
         )
-
         if last_receipt and (now - last_receipt.created_at) <= timedelta(hours=grace_hours):
-            flash("Payment receipt received. Temporary access granted during verification.", "info")
+            flash("Payment receipt received. Temporary access granted during verification.", 'info')
             return f(*args, **kwargs)
 
-        # ---------------------------
-        # 4. Mark expired & redirect
-        # ---------------------------
         if current_user.subscription_status == 'ACTIVE' and (not next_due or next_due <= now):
             current_user.subscription_status = 'EXPIRED'
             try:
@@ -108,9 +115,8 @@ def subscription_required(f):
             except Exception:
                 db.session.rollback()
 
-        flash("Subscription expired. Please renew your subscription to continue.", "warning")
+        flash("Subscription expired. Please renew your subscription to continue.", 'warning')
         return redirect(url_for('main.profile'))
-
     return wrapper
 
 def handle_errors(f):
@@ -291,7 +297,9 @@ def update_profile():
         return jsonify(success=False, message=f'Failed to update profile: {e}'), 500
 
 @main_bp.route('/update_pharmacy', methods=['POST'])
+@handle_errors
 @login_required
+@pharmacy_admin_required
 def update_pharmacy():
     data = request.get_json(silent=True)
     if not data:
@@ -322,7 +330,10 @@ def update_pharmacy():
         return jsonify(success=False, message=f'Error updating pharmacy info: {e}'), 500
     
 @main_bp.route('/settings', methods=['GET', 'POST'])
+@handle_errors
 @login_required
+@pharmacy_admin_required
+@db_transaction
 def settings():
     if request.method == 'POST':
         # Handle settings updates
@@ -354,6 +365,89 @@ def settings():
         return redirect(url_for('main.settings'))
     
     return render_template('user_xp/settings.html')
+
+@main_bp.route('/staff', methods=['GET'])
+@handle_errors
+@login_required
+@pharmacy_admin_required
+def staff_list():
+    from .models import User as _User
+    staff = _User.query.filter_by(
+        pharmacy_id=current_user.pharmacy_id,
+        role='CASHIER'
+    ).order_by(_User.full_name).all()
+    return render_template('user_xp/staff.html', staff=staff)
+
+
+@main_bp.route('/staff/add', methods=['GET', 'POST'])
+@handle_errors
+@login_required
+@pharmacy_admin_required
+@db_transaction
+def add_cashier():
+    from .models import User as _User
+    from werkzeug.security import generate_password_hash
+    import re
+
+    if request.method == 'POST':
+        full_name = request.form.get('full_name', '').strip()
+        username  = request.form.get('username', '').strip()
+        phone     = request.form.get('phone', '').strip()
+        password  = request.form.get('password', '').strip()
+
+        # Validation
+        errors = []
+        if not full_name or len(full_name) > 150:
+            errors.append('Full name is required (max 150 chars).')
+        if not username or len(username) < 3 or len(username) > 50:
+            errors.append('Username must be 3–50 characters.')
+        if not re.fullmatch(r'^07\d{8}$', phone):
+            errors.append('Enter a valid Safaricom number starting with 07.')
+        if len(password) < 6:
+            errors.append('Password must be at least 6 characters.')
+        if _User.query.filter_by(username=username).first():
+            errors.append('Username already taken.')
+        if _User.query.filter_by(phone=phone).first():
+            errors.append('Phone number already registered.')
+
+        if errors:
+            for e in errors:
+                flash(e, 'danger')
+            return render_template('user_xp/add_cashier.html')
+
+        user_code = _User.generate_code(username)
+        cashier = _User(
+            full_name=full_name,
+            username=username,
+            phone=phone,
+            user_code=user_code,
+            role='CASHIER',
+            pharmacy_id=current_user.pharmacy_id,
+            subscription_status='ACTIVE',   # inherits pharmacy subscription
+        )
+        cashier.set_password(password)
+        db.session.add(cashier)
+        flash(f'Cashier {full_name} added. Their ID is {user_code}.', 'success')
+        return redirect(url_for('main.staff_list'))
+
+    return render_template('user_xp/add_cashier.html')
+
+
+@main_bp.route('/staff/delete/<int:user_id>', methods=['POST'])
+@handle_errors
+@login_required
+@pharmacy_admin_required
+@db_transaction
+def delete_cashier(user_id):
+    from .models import User as _User
+    cashier = _User.query.filter_by(
+        id=user_id,
+        pharmacy_id=current_user.pharmacy_id,   # scope to own pharmacy
+        role='CASHIER'
+    ).first_or_404()
+    db.session.delete(cashier)
+    flash(f'{cashier.full_name} removed from your team.', 'success')
+    return redirect(url_for('main.staff_list'))
 
 # INVENTORY SUMMARY 
 @main_bp.route('/inventory')
@@ -482,7 +576,8 @@ def product_list():
 
 @main_bp.route('/products/add', methods=['GET', 'POST'])
 @handle_errors          
-@login_required         
+@login_required 
+@pharmacy_admin_required       
 @subscription_required  
 @db_transaction
 def add_product():
@@ -514,7 +609,8 @@ def add_product():
 
 @main_bp.route('/products/edit/<int:id>', methods=['GET', 'POST'])
 @handle_errors          
-@login_required         
+@login_required  
+@pharmacy_admin_required       
 @subscription_required  
 @db_transaction
 def edit_product(id):
@@ -534,7 +630,8 @@ def edit_product(id):
 
 @main_bp.route('/products/delete/<int:id>', methods=['POST'])
 @handle_errors          
-@login_required         
+@login_required   
+@pharmacy_admin_required      
 @subscription_required  
 @db_transaction
 def delete_product(id):
@@ -578,7 +675,8 @@ def batch_list():
 
 @main_bp.route('/batches/add', methods=['GET', 'POST'])
 @handle_errors          
-@login_required         
+@login_required   
+@pharmacy_admin_required      
 @subscription_required  
 @db_transaction
 def add_batch():
@@ -605,7 +703,8 @@ def add_batch():
 
 @main_bp.route('/batches/edit/<int:batch_id>', methods=['GET', 'POST'])
 @handle_errors          
-@login_required         
+@login_required   
+@pharmacy_admin_required      
 @subscription_required  
 @db_transaction
 def edit_batch(batch_id):
@@ -623,7 +722,8 @@ def edit_batch(batch_id):
 
 @main_bp.route('/batches/delete/<int:batch_id>', methods=['POST'])
 @handle_errors          
-@login_required         
+@login_required    
+@pharmacy_admin_required      
 @subscription_required  
 @db_transaction
 def delete_batch(batch_id):
@@ -645,7 +745,8 @@ def category_list():
 
 @main_bp.route('/categories/add', methods=['GET', 'POST'])
 @handle_errors          
-@login_required         
+@login_required  
+@pharmacy_admin_required      
 @subscription_required  
 @db_transaction
 def add_category():
@@ -664,7 +765,8 @@ def add_category():
 
 @main_bp.route('/categories/edit/<int:id>', methods=['GET', 'POST'])
 @handle_errors          
-@login_required         
+@login_required  
+@pharmacy_admin_required      
 @subscription_required  
 @db_transaction
 def edit_category(id):
@@ -679,7 +781,8 @@ def edit_category(id):
 
 @main_bp.route('/categories/delete/<int:id>', methods=['POST'])
 @handle_errors          
-@login_required         
+@login_required  
+@pharmacy_admin_required       
 @subscription_required  
 @db_transaction
 def delete_category(id):

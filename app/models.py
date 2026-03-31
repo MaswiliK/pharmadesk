@@ -50,7 +50,7 @@ class User(UserMixin, db.Model):
     next_payment_due = db.Column(db.DateTime, nullable=True)
     subscription_status = db.Column(db.String(20), default='INACTIVE')  # ACTIVE / EXPIRED
     
-    role = db.Column(db.String(20), default='USER', index=True)  # ADMIN / USER / SUPPORT
+    role = db.Column(db.String(20), default='PHARMACY_ADMIN', index=True)  # GLOBAL_ADMIN / PHARMACY_ADMIN / CASHIER
 
     # Pharmacy Link
     pharmacy_id = db.Column(db.Integer, db.ForeignKey('pharmacies.id'), nullable=False)
@@ -83,6 +83,23 @@ class User(UserMixin, db.Model):
     def check_password(self, raw_password: str) -> bool:
         """Verify a plaintext password against the stored hash."""
         return check_password_hash(self.password, raw_password)
+    
+    @property
+    def is_global_admin(self) -> bool:
+        return self.role == 'GLOBAL_ADMIN'
+
+    @property
+    def is_pharmacy_admin(self) -> bool:
+        return self.role == 'PHARMACY_ADMIN'
+
+    @property
+    def is_cashier(self) -> bool:
+        return self.role == 'CASHIER'
+
+    @property
+    def is_any_admin(self) -> bool:
+        """True for both GLOBAL_ADMIN and PHARMACY_ADMIN."""
+        return self.role in ('GLOBAL_ADMIN', 'PHARMACY_ADMIN')
 
     def __repr__(self):
         return f"<User {self.username} ({self.full_name}) - Pharmacy: {self.pharmacy.name}>"

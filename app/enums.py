@@ -21,3 +21,8 @@ class AlertType(Enum):
     QUALITY_ISSUE = "quality_issue"
     PAYMENT = 'payment_reminder'
     REORDER = 'reorder'
+    
+class UserRole(Enum):
+    GLOBAL_ADMIN   = 'GLOBAL_ADMIN'
+    PHARMACY_ADMIN = 'PHARMACY_ADMIN'
+    CASHIER        = 'CASHIER'    

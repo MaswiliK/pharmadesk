@@ -36,14 +36,17 @@ def login():
                 db.session.commit()
                 
                 # Redirect based on role
-                if user.role == 'ADMIN':
+                if user.role == 'GLOBAL_ADMIN':
                     flash('Admin login successful!', 'success')
                     return redirect(url_for('admin.dashboard'))
+                elif user.role == 'CASHIER':
+                    flash('Login successful!', 'success')
+                    return redirect(url_for('main.sales_processing'))  # cashiers land on the POS
                 else:
                     next_page = request.args.get('next')
-                    flash('Login successful!', 'success')
                     if next_page and (urlsplit(next_page).netloc or urlsplit(next_page).scheme):
                         next_page = None
+                    flash('Login successful!', 'success')
                     return redirect(next_page or url_for('main.dashboard'))
             else:
                 # Security: Don't reveal whether username or password was wrong
@@ -97,7 +100,8 @@ def register():
                 phone=form.phone.data,
                 email=form.email.data or None,
                 user_code=user_code,
-                pharmacy_id=pharmacy.id
+                pharmacy_id=pharmacy.id,
+                role='PHARMACY_ADMIN'
             )
             user.set_password(form.password.data)  # Use the updated method
 
