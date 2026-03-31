@@ -1,8 +1,9 @@
+# app/auth.py
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
+from urllib.parse import urlsplit
 from app.forms import LoginForm, RegistrationForm
 from app.models import User, Pharmacy
-from werkzeug.security import check_password_hash, generate_password_hash
 from app import db
 from datetime import datetime
 from pytz import timezone
@@ -11,7 +12,7 @@ import logging
 # Set up logging
 logger = logging.getLogger(__name__) 
 
-eat_tz = timezone('Africa/Nairobi')
+eat_tz = ZoneInfo('Africa/Nairobi')
 
 auth = Blueprint('auth', __name__)
 
@@ -26,7 +27,7 @@ def login():
             user = User.query.filter_by(username=form.username.data).first()
             
             # Security: Use constant time comparison to prevent timing attacks
-            if user and check_password_hash(user.password, form.password.data):
+            if user and user.check_password(form.password.data):
                 login_user(user, remember=form.remember.data)
                 
                 # Update last login time and IP address (if available)
@@ -41,6 +42,8 @@ def login():
                 else:
                     next_page = request.args.get('next')
                     flash('Login successful!', 'success')
+                    if next_page and (urlsplit(next_page).netloc or urlsplit(next_page).scheme):
+                        next_page = None
                     return redirect(next_page or url_for('main.dashboard'))
             else:
                 # Security: Don't reveal whether username or password was wrong
@@ -93,10 +96,10 @@ def register():
                 username=form.username.data,
                 phone=form.phone.data,
                 email=form.email.data or None,
-                password=hashed_password,
                 user_code=user_code,
                 pharmacy_id=pharmacy.id
             )
+            user.set_password(form.password.data)  # Use the updated method
 
             db.session.add(user)
             db.session.commit()

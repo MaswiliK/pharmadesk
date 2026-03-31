@@ -1,8 +1,9 @@
+# app/models.py
 from datetime import datetime, date, timedelta
 from decimal import Decimal
 from enum import Enum
 from flask_login import UserMixin, current_user
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import deferred, validates, synonym
@@ -40,7 +41,7 @@ class User(UserMixin, db.Model):
     user_code = db.Column(db.String(10), unique=True, index=True)  # e.g. PDU001
     full_name = db.Column(db.String(150), nullable=False)
     username = db.Column(db.String(100), unique=True, nullable=False)  # For login
-    password = db.Column(db.String(200), nullable=False)  # Hashed password
+    password = db.Column(db.String(256), nullable=False)  # Hashed password
 
     # Contact Info
     phone = db.Column(db.String(20), unique=True, nullable=False)  # Key for M-Pesa, alerts
@@ -75,7 +76,13 @@ class User(UserMixin, db.Model):
                     return candidate_code
         raise Exception("Unable to generate unique user code after multiple attempts")
 
+    def set_password(self, raw_password: str) -> None:
+        """Hash and store the password. Call this instead of hashing inline."""
+        self.password = generate_password_hash(raw_password)
 
+    def check_password(self, raw_password: str) -> bool:
+        """Verify a plaintext password against the stored hash."""
+        return check_password_hash(self.password, raw_password)
 
     def __repr__(self):
         return f"<User {self.username} ({self.full_name}) - Pharmacy: {self.pharmacy.name}>"
