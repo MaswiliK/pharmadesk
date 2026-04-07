@@ -54,24 +54,44 @@ def create_app():
                         "python -c \"import secrets; print(secrets.token_hex(32))\"")
         
     # Load essential configuration
+    is_production = os.environ.get('FLASK_DEBUG', 'false').lower() != 'true'
+
     app.config.update({
-        'SECRET_KEY': os.environ.get('SECRET_KEY'),
-        'DEBUG': os.environ.get('FLASK_DEBUG', 'false').lower() == 'true',
-        'SQLALCHEMY_DATABASE_URI': os.environ.get("DATABASE_URL"),
+        'SECRET_KEY': secret,
+
+        # ── CSRF ──────────────────────────────────────────────
+        'WTF_CSRF_ENABLED': True,
+        'WTF_CSRF_TIME_LIMIT': 3600,
+
+        # ── Database ──────────────────────────────────────────
+        'SQLALCHEMY_DATABASE_URI': os.environ.get('DATABASE_URL'),
         'SQLALCHEMY_TRACK_MODIFICATIONS': False,
+
+        # ── Cache / Limiter ───────────────────────────────────
         'CACHE_TYPE': 'SimpleCache',
-        'REMEMBER_COOKIE_DURATION': 30 * 24 * 3600,  # 30 days in seconds
+        'RATELIMIT_STORAGE_URI': os.environ.get('RATELIMIT_STORAGE_URI', 'memory://'),
+        'RATELIMIT_HEADERS_ENABLED': True,
+        'RATELIMIT_STRATEGY': 'fixed-window-elastic-expiry',
+
+        # ── Session cookie ────────────────────────────────────
+        'SESSION_COOKIE_SECURE': is_production,   # HTTPS only in prod; off locally so dev works
+        'SESSION_COOKIE_HTTPONLY': True,           # JS cannot read it, ever
+        'SESSION_COOKIE_SAMESITE': 'Lax',         # blocks cross-site POST, allows same-site GET
+        'SESSION_COOKIE_NAME': 'pd_session',      # obscure the default 'session' name
+        'PERMANENT_SESSION_LIFETIME': 60 * 60 * 8,  # 8 hours — auto-expire idle sessions
+
+        # ── Remember-me cookie (Flask-Login) ──────────────────
+        'REMEMBER_COOKIE_DURATION': 30 * 24 * 3600,  # 30 days
+        'REMEMBER_COOKIE_SECURE': is_production,
+        'REMEMBER_COOKIE_HTTPONLY': True,
+        'REMEMBER_COOKIE_SAMESITE': 'Lax',
+        'REMEMBER_COOKIE_NAME': 'pd_remember',    # obscure the default name
+
+        # ── App config ────────────────────────────────────────
+        'DEBUG': not is_production,
         'TRIAL_HOURS': 72,
         'PENDING_GRACE_HOURS': 48,
         'SUBSCRIPTION_DAYS': 30,
-        'WTF_CSRF_ENABLED': True,           # explicit 
-        'WTF_CSRF_TIME_LIMIT': 3600,        # token expires after 1 hour
-        # Rate limiter storage
-        # Dev: in-memory (resets on restart, fine for local)
-        # Production: swap to 'redis://localhost:6379/1' once you add Redis
-        'RATELIMIT_STORAGE_URI': os.environ.get('RATELIMIT_STORAGE_URI', 'memory://'),
-        'RATELIMIT_HEADERS_ENABLED': True,   # sends X-RateLimit-* headers to clients
-        'RATELIMIT_STRATEGY': 'fixed-window-elastic-expiry'
     })
 
     # Initialize extensions with app
@@ -104,6 +124,13 @@ def create_app():
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+    
+    @app.before_request
+    def make_session_permanent():
+        """Mark sessions as permanent so the 8-hour lifetime is enforced.
+        Without this Flask sessions expire only when the browser is closed."""
+        from flask import session
+        session.permanent = True
 
     # Template filters
     @app.template_filter('currency')
@@ -159,5 +186,34 @@ def create_app():
             'now': datetime.utcnow()
         }
     
+    from flask import Response
+
+    @app.before_request
+    def enforce_https():
+        """In production, redirect any plain HTTP request to HTTPS."""
+        if is_production and request.headers.get('X-Forwarded-Proto', 'https') == 'http':
+            url = request.url.replace('http://', 'https://', 1)
+            return redirect(url, code=301)
+
+    @app.after_request
+    def set_security_headers(response: Response) -> Response:
+        """Attach security headers to every response."""
+        if is_production:
+            # Tell browsers to always use HTTPS for this domain for 1 year
+            # includeSubDomains covers all subdomains; preload opts into the HSTS preload list
+            response.headers['Strict-Transport-Security'] = (
+                'max-age=31536000; includeSubDomains'
+            )
+        # Block your pages from being embedded in iframes on other domains (clickjacking)
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        # Stop browsers from MIME-sniffing a response away from the declared content-type
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        # Limit referrer info sent to other sites
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        # Restrict what browser features the page can use
+        response.headers['Permissions-Policy'] = (
+            'geolocation=(), microphone=(), camera=()'
+        )
+        return response
 
     return app
